@@ -390,10 +390,15 @@ function getPublicServices() {
  * PUBLISH MENU
  *
  * Adds "Better Bodies > Publish services to site" to the sheet's UI.
- * publishToSite() reads BUILD_HOOK_URL from Script Properties
- * (File > Project Settings > Script Properties) and pings the Netlify
- * build hook so it is never hardcoded or committed.
+ * publishToSite() reads GITHUB_PAT from Script Properties (File > Project
+ * Settings > Script Properties) and fires a GitHub repository_dispatch
+ * event, which the site's GitHub Actions workflow
+ * (.github/workflows/deploy.yml) listens for to rebuild and redeploy
+ * GitHub Pages. The token is never hardcoded or committed.
  *******************************************************/
+
+const GITHUB_REPO = "modernProteus/betterbodies-web";
+const GITHUB_DISPATCH_EVENT_TYPE = "publish-services";
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -403,20 +408,44 @@ function onOpen() {
 }
 
 function publishToSite() {
-  const hookUrl = PropertiesService.getScriptProperties().getProperty(
-	"BUILD_HOOK_URL"
+  const pat = PropertiesService.getScriptProperties().getProperty(
+	"GITHUB_PAT"
   );
 
-  if (!hookUrl) {
+  if (!pat) {
 	SpreadsheetApp.getActive().toast(
-	  "BUILD_HOOK_URL is not set in Script Properties. Publish canceled.",
+	  "GITHUB_PAT is not set in Script Properties. Publish canceled.",
 	  "Better Bodies",
 	  8
 	);
 	return;
   }
 
-  UrlFetchApp.fetch(hookUrl, { method: "post" });
+  const response = UrlFetchApp.fetch(
+	`https://api.github.com/repos/${GITHUB_REPO}/dispatches`,
+	{
+	  method: "post",
+	  contentType: "application/json",
+	  headers: {
+		Authorization: `Bearer ${pat}`,
+		Accept: "application/vnd.github+json",
+		"X-GitHub-Api-Version": "2022-11-28"
+	  },
+	  payload: JSON.stringify({ event_type: GITHUB_DISPATCH_EVENT_TYPE }),
+	  muteHttpExceptions: true
+	}
+  );
+
+  const status = response.getResponseCode();
+
+  if (status !== 204) {
+	SpreadsheetApp.getActive().toast(
+	  `Publish failed (GitHub returned ${status}). Check the GITHUB_PAT permissions.`,
+	  "Better Bodies",
+	  8
+	);
+	return;
+  }
 
   SpreadsheetApp.getActive().toast(
 	"Publishing. Site updates in a few minutes.",
