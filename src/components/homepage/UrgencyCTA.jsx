@@ -7,19 +7,15 @@ import useUpcomingClasses, {
   formatEventDate,
   scrollToSection,
 } from "@/lib/useUpcomingClasses";
+import {
+  DELIVERY_MODES,
+  getServiceByKey,
+  getServiceKeyFromClassType,
+} from "@/data/services";
 
 function classTypeToService(classType) {
-  const value = String(classType || "").toLowerCase();
-
-  if (value.includes("cpr")) return "CPR Certification";
-  if (value.includes("bls")) return "BLS Certification";
-  if (value.includes("aid") || value.includes("aed")) return "AED / First Aid";
-  if (value.includes("group")) return "Group / On-Site Training";
-  if (value.includes("defense") || value.includes("safety")) {
-    return "Personal Safety / Self-Defense";
-  }
-
-  return classType || "Class Inquiry";
+  const key = getServiceKeyFromClassType(classType);
+  return key ? getServiceByKey(key).title : classType || "Class Inquiry";
 }
 
 export default function UrgencyCTA({ onRequestTraining }) {
@@ -66,6 +62,9 @@ export default function UrgencyCTA({ onRequestTraining }) {
                   className="bg-red-600 text-white hover:bg-red-700"
                   onClick={() =>
                     onRequestTraining?.({
+                      topic:
+                        getServiceKeyFromClassType(nextClass.classType) ??
+                        "cpr",
                       sourceSection: "urgency_cta",
                       leadIntent: "specific_class",
                       serviceNeeded: classTypeToService(nextClass.classType),
@@ -83,6 +82,7 @@ export default function UrgencyCTA({ onRequestTraining }) {
                   className="bg-red-600 text-white hover:bg-red-700"
                   onClick={() =>
                     onRequestTraining?.({
+                      topic: "cpr",
                       sourceSection: "urgency_cta",
                       leadIntent: "general_training",
                       serviceNeeded: "Not sure yet",
@@ -109,10 +109,11 @@ export default function UrgencyCTA({ onRequestTraining }) {
                 className="border-white/20 text-white hover:bg-white/10"
                 onClick={() =>
                   onRequestTraining?.({
+                    topic: "group",
                     sourceSection: "urgency_cta",
-                    leadIntent: "group_training",
-                    serviceNeeded: "Group / On-Site Training",
-                    ctaLabel: "Request Group Training",
+                    leadIntent: DELIVERY_MODES.group.leadIntent,
+                    serviceNeeded: DELIVERY_MODES.group.title,
+                    ctaLabel: DELIVERY_MODES.group.cta,
                   })
                 }
               >

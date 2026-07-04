@@ -1,83 +1,38 @@
 import React, { useState } from "react";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Eye,
-  Heart,
-  RotateCcw,
-  Shield,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getServicesByTier, DELIVERY_MODES } from "@/data/services";
+import { getServiceIcon } from "@/lib/serviceIcons";
 
-const services = [
-  {
-    title: "CPR Certification",
-    serviceNeeded: "CPR Certification",
-    icon: Heart,
-    description:
-      "Hands-on CPR training for individuals, caregivers, teachers, and professionals who need practical emergency response skills.",
-    who: "Individuals, teachers, childcare providers, caregivers",
-    cta: "Request CPR Training",
-  },
-  {
-    title: "BLS Certification",
-    serviceNeeded: "BLS Certification",
-    icon: Shield,
-    description:
-      "Basic Life Support training for healthcare workers and professionals who need a higher level of emergency response readiness.",
-    who: "Healthcare workers, care teams, professional responders",
-    cta: "Request BLS Info",
-  },
-  {
-    title: "AED + First Aid",
-    serviceNeeded: "AED / First Aid",
-    icon: RotateCcw,
-    description:
-      "Practical first aid and AED-focused training that helps people respond calmly and effectively before help arrives.",
-    who: "Teams, workplaces, schools, churches, community groups",
-    cta: "Ask About First Aid",
-  },
-  {
-    title: "Crisis Readiness",
-    serviceNeeded: "Crisis Readiness",
-    icon: AlertTriangle,
-    description:
-      "Situational awareness and response skills for real-world moments that call for calm thinking and confident action.",
-    who: "Organizations, agencies, mixed-role teams",
-    cta: "Request Readiness Training",
-  },
-  {
-    title: "Personal Safety",
-    serviceNeeded: "Personal Safety / Self-Defense",
-    icon: Eye,
-    description:
-      "Body awareness, personal safety, and self-defense-informed instruction rooted in practical confidence and prevention.",
-    who: "Individuals, staff teams, gyms, community groups",
-    cta: "Ask About Safety Training",
-  },
-  {
-    title: "Personal & Event Protection",
-    serviceNeeded: "Personal / Event Protection",
-    icon: ShieldCheck,
-    description:
-      "Personal and event protection, plus active-shooter evacuation planning, delivered calmly and professionally to keep people and gatherings safe.",
-    who: "Individuals, events, organizations, and teams needing on-site protection",
-    cta: "Ask About Protection",
-  },
-  {
-    title: "Group / On-Site Training",
-    serviceNeeded: "Group / On-Site Training",
-    icon: Shield,
-    description:
-      "Bring BetterBodies training to your workplace, school, church, gym, agency, or community organization.",
-    who: "Businesses, schools, churches, gyms, nonprofits",
-    cta: "Request Group Training",
-  },
+const TIER_GROUPS = [
+  { tier: 1, label: "Start here" },
+  { tier: 2, label: "Where BetterBodies began" },
+  { tier: 3, label: "Go further" },
 ];
 
 export default function ServicesCards({ onRequestTraining }) {
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeKey, setActiveKey] = useState(null);
+
+  const requestService = (service) =>
+    onRequestTraining?.({
+      topic: service.key,
+      sourceSection: "services",
+      leadIntent: service.leadIntent,
+      serviceNeeded: service.title,
+      ctaLabel: service.cta,
+    });
+
+  const requestGroupTraining = () => {
+    const group = DELIVERY_MODES.group;
+
+    onRequestTraining?.({
+      topic: "group",
+      sourceSection: "services",
+      leadIntent: group.leadIntent,
+      serviceNeeded: group.title,
+      ctaLabel: group.cta,
+    });
+  };
 
   return (
     <section className="bg-white py-20">
@@ -92,71 +47,105 @@ export default function ServicesCards({ onRequestTraining }) {
           </h2>
 
           <p className="mt-4 text-slate-700">
-            BetterBodies brings together emergency response, CPR/BLS
-            certification, personal safety, and group-ready training so people
-            leave more confident, capable, and prepared.
+            BetterBodies brings together fitness training, emergency response,
+            CPR/BLS certification, personal safety, and group-ready training
+            so people leave more confident, capable, and prepared.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            const isActive = activeIndex === index;
+        {TIER_GROUPS.map(({ tier, label }) => {
+          const tierServices = getServicesByTier(tier);
 
-            return (
-              <article
-                key={service.title}
-                className="reveal-on-scroll flex min-h-[300px] flex-col rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition hover:-translate-y-1 hover:bg-white hover:shadow-lg"
-                onMouseEnter={() => setActiveIndex(index)}
-                onMouseLeave={() => setActiveIndex(null)}
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="grid h-12 w-12 place-items-center rounded-2xl bg-red-600 text-white">
-                    <Icon className="h-6 w-6" />
+          if (tierServices.length === 0) return null;
+
+          return (
+            <div key={tier} className="mt-12">
+              <p className="mb-4 text-xs font-bold uppercase tracking-wide text-slate-400">
+                {label}
+              </p>
+
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {tierServices.map((service) => {
+                  const Icon = getServiceIcon(service.icon);
+                  const isActive = activeKey === service.key;
+
+                  return (
+                    <article
+                      key={service.key}
+                      className="reveal-on-scroll flex min-h-[300px] flex-col rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition hover:-translate-y-1 hover:bg-white hover:shadow-lg"
+                      onMouseEnter={() => setActiveKey(service.key)}
+                      onMouseLeave={() => setActiveKey(null)}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-red-600 text-white">
+                          <Icon className="h-6 w-6" />
+                        </div>
+
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                          {isActive ? "Ready" : "Training"}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-5 text-xl font-extrabold text-slate-950">
+                        {service.title}
+                      </h3>
+
+                      <p className="mt-3 text-sm leading-6 text-slate-700">
+                        {service.description}
+                      </p>
+
+                      <p className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-500">
+                        Best for
+                      </p>
+
+                      <p className="mt-1 text-sm text-slate-600">
+                        {service.who}
+                      </p>
+
+                      <div className="mt-auto pt-6">
+                        <Button
+                          className="w-full bg-slate-950 hover:bg-red-600"
+                          onClick={() => requestService(service)}
+                        >
+                          {service.cta}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {tier === 3 && (
+                <div className="mt-5 flex flex-col gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white">
+                      <Users className="h-6 w-6" />
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-950">
+                        {DELIVERY_MODES.group.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Bring any of the above to your workplace, school,
+                        church, gym, agency, or community organization.
+                      </p>
+                    </div>
                   </div>
 
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-500">
-                    {isActive ? "Ready" : "Training"}
-                  </span>
-                </div>
-
-                <h3 className="mt-5 text-xl font-extrabold text-slate-950">
-                  {service.title}
-                </h3>
-
-                <p className="mt-3 text-sm leading-6 text-slate-700">
-                  {service.description}
-                </p>
-
-                <p className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Best for
-                </p>
-
-                <p className="mt-1 text-sm text-slate-600">{service.who}</p>
-
-                <div className="mt-auto pt-6">
                   <Button
-                    className="w-full bg-slate-950 hover:bg-red-600"
-                    onClick={() =>
-                      onRequestTraining?.({
-                        sourceSection: "services",
-                        leadIntent:
-                          service.serviceNeeded === "Group / On-Site Training"
-                            ? "group_training"
-                            : "service_interest",
-                        serviceNeeded: service.serviceNeeded,
-                        ctaLabel: service.cta,
-                      })
-                    }
+                    className="bg-slate-950 hover:bg-red-600 sm:shrink-0"
+                    onClick={requestGroupTraining}
                   >
-                    {service.cta}
+                    {DELIVERY_MODES.group.cta}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
-              </article>
-            );
-          })}
-        </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

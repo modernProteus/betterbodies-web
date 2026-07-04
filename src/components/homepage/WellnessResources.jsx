@@ -1,10 +1,13 @@
 import React from "react";
 import { ArrowRight, ExternalLink, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getServiceByKey } from "@/data/services";
 
 const HOMSTED_URL = "https://homsted.com";
 
 export default function WellnessResources({ onRequestTraining }) {
+  const wellness = getServiceByKey("wellness");
+
   return (
     <section className="bg-slate-50 py-14">
       <div className="mx-auto max-w-6xl px-4">
@@ -48,14 +51,15 @@ export default function WellnessResources({ onRequestTraining }) {
                 className="border-slate-300 text-slate-700 hover:bg-slate-100"
                 onClick={() =>
                   onRequestTraining?.({
+                    topic: "wellness",
                     sourceSection: "wellness",
-                    leadIntent: "wellness_interest",
-                    serviceNeeded: "Holistic Wellness / Apothecary",
-                    ctaLabel: "Ask About Wellness",
+                    leadIntent: wellness.leadIntent,
+                    serviceNeeded: wellness.title,
+                    ctaLabel: wellness.cta,
                   })
                 }
               >
-                Ask About Wellness
+                {wellness.cta}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>

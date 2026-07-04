@@ -53,6 +53,7 @@ export default function HeroSection({ heroImage, onRequestTraining }) {
             size="lg"
             onClick={() =>
               onRequestTraining?.({
+                topic: "cpr",
                 sourceSection: "hero",
                 leadIntent: "general_training",
                 serviceNeeded: "Not sure yet",

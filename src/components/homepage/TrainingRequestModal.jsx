@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SERVICES, DELIVERY_MODES, getServiceByKey } from "@/data/services";
+import { getServiceIcon } from "@/lib/serviceIcons";
 
 const GOOGLE_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbzXq9f6f1MCbmrZeocsYdWXHeKFx0BWpIaExA-rqAOGw4YuJAn7d9Ruaq48rokRreBV/exec";
 
 const DEFAULT_CONTEXT = {
+  topic: "",
   sourceSection: "",
   leadIntent: "general_training",
-  serviceNeeded: "Not sure yet",
+  serviceNeeded: "",
   selectedClass: "",
   selectedClassId: "",
   ctaLabel: "Request Training",
@@ -16,55 +19,28 @@ const DEFAULT_CONTEXT = {
 
 const SERVICE_OPTIONS = [
   "Not sure yet",
-  "CPR Certification",
-  "BLS Certification",
-  "AED / First Aid",
-  "Group / On-Site Training",
-  "Personal Safety / Self-Defense",
-  "Crisis Readiness",
-  "Personal / Event Protection",
-  "Holistic Wellness / Apothecary",
+  ...SERVICES.filter((service) => service.active).map(
+    (service) => service.title
+  ),
+  DELIVERY_MODES.group.title,
   "Other",
 ];
 
 const CONTACT_METHODS = ["No preference", "Email", "Phone", "Text"];
 
-function buildInitialForm(context) {
+function buildInitialForm(serviceNeeded) {
   return {
     name: "",
     email: "",
     phone: "",
     preferred_contact_method: "No preference",
-    service_needed: context.serviceNeeded || "Not sure yet",
+    service_needed: serviceNeeded || "Not sure yet",
     preferred_timing: "",
     group_size: "",
     organization: "",
     location: "",
     message: "",
   };
-}
-
-function getModalTitle(context) {
-  if (context.leadIntent === "specific_class") return "Request this class";
-  if (context.leadIntent === "group_training") {
-    return "Request group or on-site training";
-  }
-  if (context.serviceNeeded && context.serviceNeeded !== "Not sure yet") {
-    return `Request ${context.serviceNeeded}`;
-  }
-  return "Request BetterBodies training";
-}
-
-function getModalDescription(context) {
-  if (context.leadIntent === "specific_class") {
-    return "Send your contact info and Sheldon or Juana will follow up about this class.";
-  }
-
-  if (context.leadIntent === "group_training") {
-    return "Tell us about your group, organization, timing, and training needs.";
-  }
-
-  return "Tell us what kind of training you are looking for, and Sheldon or Juana will follow up.";
 }
 
 export default function TrainingRequestModal({ open, context = {}, onClose }) {
@@ -76,17 +52,30 @@ export default function TrainingRequestModal({ open, context = {}, onClose }) {
     [context]
   );
 
-  const [form, setForm] = useState(() => buildInitialForm(requestContext));
+  const entry = useMemo(
+    () => getServiceByKey(requestContext.topic),
+    [requestContext.topic]
+  );
+
+  const EntryIcon = getServiceIcon(entry.icon);
+
+  const resolvedServiceNeeded =
+    context?.serviceNeeded ||
+    (entry.key === "generic" ? "Not sure yet" : entry.title);
+
+  const [form, setForm] = useState(() =>
+    buildInitialForm(resolvedServiceNeeded)
+  );
   const [status, setStatus] = useState("idle");
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     if (!open) return;
 
-    setForm(buildInitialForm(requestContext));
+    setForm(buildInitialForm(resolvedServiceNeeded));
     setStatus("idle");
     setStatusMessage("");
-  }, [open, requestContext]);
+  }, [open, resolvedServiceNeeded]);
 
   useEffect(() => {
     if (!open) return;
@@ -167,7 +156,7 @@ export default function TrainingRequestModal({ open, context = {}, onClose }) {
       setStatusMessage(
         "Request sent. Sheldon or Juana will follow up with you soon."
       );
-      setForm(buildInitialForm(requestContext));
+      setForm(buildInitialForm(resolvedServiceNeeded));
     } catch (error) {
       console.error("Training request failed:", error);
       setStatus("error");
@@ -189,21 +178,27 @@ export default function TrainingRequestModal({ open, context = {}, onClose }) {
     >
       <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white p-5">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-wide text-red-600">
-              BetterBodies TX
-            </p>
+          <div className="flex items-start gap-4">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-red-600 text-white">
+              <EntryIcon className="h-5 w-5" />
+            </div>
 
-            <h2
-              id="training-request-title"
-              className="mt-1 text-2xl font-extrabold text-slate-950"
-            >
-              {getModalTitle(requestContext)}
-            </h2>
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-wide text-red-600">
+                BetterBodies TX
+              </p>
 
-            <p className="mt-1 text-sm text-slate-600">
-              {getModalDescription(requestContext)}
-            </p>
+              <h2
+                id="training-request-title"
+                className="mt-1 text-2xl font-extrabold text-slate-950"
+              >
+                {entry.modal.title}
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-600">
+                {entry.modal.description}
+              </p>
+            </div>
           </div>
 
           <button

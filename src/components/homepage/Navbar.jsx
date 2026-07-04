@@ -31,6 +31,7 @@ export default function Navbar({ onRequestTraining }) {
     setOpen(false);
 
     onRequestTraining?.({
+      topic: "generic",
       sourceSection,
       leadIntent: "general_training",
       serviceNeeded: "Not sure yet",

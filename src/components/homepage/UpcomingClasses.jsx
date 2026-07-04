@@ -6,19 +6,11 @@ import useUpcomingClasses, {
   buildSelectedClassLabel,
   formatEventDate,
 } from "@/lib/useUpcomingClasses";
+import { getServiceByKey, getServiceKeyFromClassType } from "@/data/services";
 
 function classTypeToService(classType) {
-  const value = String(classType || "").toLowerCase();
-
-  if (value.includes("cpr")) return "CPR Certification";
-  if (value.includes("bls")) return "BLS Certification";
-  if (value.includes("aid") || value.includes("aed")) return "AED / First Aid";
-  if (value.includes("group")) return "Group / On-Site Training";
-  if (value.includes("defense") || value.includes("safety")) {
-    return "Personal Safety / Self-Defense";
-  }
-
-  return classType || "Class Inquiry";
+  const key = getServiceKeyFromClassType(classType);
+  return key ? getServiceByKey(key).title : classType || "Class Inquiry";
 }
 
 export default function UpcomingClasses({ onRequestTraining }) {
@@ -72,6 +64,7 @@ export default function UpcomingClasses({ onRequestTraining }) {
               className="mt-5 bg-red-600 hover:bg-red-700"
               onClick={() =>
                 onRequestTraining?.({
+                  topic: "cpr",
                   sourceSection: "upcoming_classes_empty",
                   leadIntent: "general_training",
                   serviceNeeded: "Not sure yet",
@@ -154,6 +147,9 @@ export default function UpcomingClasses({ onRequestTraining }) {
                       className="w-full bg-red-600 hover:bg-red-700"
                       onClick={() =>
                         onRequestTraining?.({
+                          topic: getServiceKeyFromClassType(
+                            event.classType
+                          ) ?? "cpr",
                           sourceSection: "upcoming_classes",
                           leadIntent: "specific_class",
                           serviceNeeded: classTypeToService(event.classType),

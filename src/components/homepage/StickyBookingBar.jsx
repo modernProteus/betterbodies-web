@@ -11,6 +11,7 @@ export default function StickyBookingBar({ onRequestTraining }) {
           className="flex-1 bg-red-600 text-white hover:bg-red-700"
           onClick={() =>
             onRequestTraining?.({
+              topic: "cpr",
               sourceSection: "sticky_booking_bar",
               leadIntent: "general_training",
               serviceNeeded: "Not sure yet",

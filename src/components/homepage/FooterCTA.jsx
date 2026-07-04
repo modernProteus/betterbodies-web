@@ -40,6 +40,7 @@ export default function FooterCTA({ onRequestTraining }) {
                 className="bg-red-600 hover:bg-red-700"
                 onClick={() =>
                   onRequestTraining?.({
+                    topic: "generic",
                     sourceSection: "footer_cta",
                     leadIntent: "general_training",
                     serviceNeeded: "Not sure yet",
