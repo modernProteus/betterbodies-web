@@ -19,6 +19,7 @@ export default function ServiceTile({
   isExpanded,
   isFeatured,
   showHint = false,
+  collapseOnScrollOut = false,
   onExpand,
   onCollapse,
   sourceSection = "services",
@@ -51,18 +52,28 @@ export default function ServiceTile({
   const panelId = useId();
   const Icon = getServiceIcon(service.icon);
 
-  // Collapsing back to a pill resets everything; expanding fresh starts at detail.
+  // Collapsing back to a pill resets everything, unless there's unsaved form
+  // input, in which case it's preserved so reopening this tile (whether by
+  // switching to a different card or coming straight back) restores it.
+  // Never silently discard a half-typed lead. Expanding fresh starts at
+  // detail; expanding a tile with a preserved form goes straight back to it.
   useEffect(() => {
     if (wasExpanded.current && !isExpanded) {
-      setMode(null);
-      setActiveRequest(null);
-      setForm(buildForm());
-      setStatus("idle");
-      setStatusMessage("");
+      const preserveForm =
+        mode === "form" && status !== "sent" && hasUnsavedInput(form);
+
+      if (!preserveForm) {
+        setMode(null);
+        setActiveRequest(null);
+        setForm(buildForm());
+        setStatus("idle");
+        setStatusMessage("");
+      }
+
       pillButtonRef.current?.focus({ preventScroll: true });
     }
 
-    if (!wasExpanded.current && isExpanded) {
+    if (!wasExpanded.current && isExpanded && mode === null) {
       setMode("detail");
     }
 
@@ -70,18 +81,18 @@ export default function ServiceTile({
   }, [isExpanded]);
 
   useEffect(() => {
-    if (mode === "form" && status !== "sent") {
+    if (isExpanded && mode === "form" && status !== "sent") {
       nameInputRef.current?.focus({ preventScroll: true });
     }
-  }, [mode, status]);
+  }, [isExpanded, mode, status]);
 
   // Collapse an expanded tile once it scrolls fully out of view, so coming
   // back to the section is clean. Only fires on a visible -> not-visible
   // transition (never on mount for a tile that starts below the fold, like
   // the default-open CPR tile), never while any part is visible, and never
-  // discards a half-typed form.
+  // discards a half-typed form. Feature-flagged off via collapseOnScrollOut.
   useEffect(() => {
-    if (!isExpanded) return;
+    if (!isExpanded || !collapseOnScrollOut) return;
 
     const node = tileRef.current;
     if (!node) return;
@@ -125,7 +136,7 @@ export default function ServiceTile({
       cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [isExpanded, onCollapse]);
+  }, [isExpanded, collapseOnScrollOut, onCollapse]);
 
   const displayState = !isExpanded ? "pill" : mode;
 

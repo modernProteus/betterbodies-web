@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { getServicesByTier, DELIVERY_MODES } from "@/data/services";
 import ServiceTile from "./ServiceTile";
 
+// Feature flag: collapse an expanded tile once it scrolls fully out of view.
+// Off for now; flip to true to re-enable. See ServiceTile's
+// collapseOnScrollOut prop for the implementation.
+const COLLAPSE_TILES_ON_SCROLL_OUT = false;
+
 export default function ServicesCards({ onRequestTraining }) {
   const tier1Services = getServicesByTier(1);
   const tier2Services = getServicesByTier(2);
@@ -55,6 +60,7 @@ export default function ServicesCards({ onRequestTraining }) {
               service={service}
               isFeatured={service.tier === 1}
               showHint={service.key === firstNonFeaturedKey}
+              collapseOnScrollOut={COLLAPSE_TILES_ON_SCROLL_OUT}
               isExpanded={expandedKey === service.key}
               onExpand={() => setExpandedKey(service.key)}
               onCollapse={() => setExpandedKey(null)}
