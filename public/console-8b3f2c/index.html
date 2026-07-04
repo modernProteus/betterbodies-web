@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>BetterBodies Admin Console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="console-header">
+      <div class="console-brand">
+        <div class="mark">BB</div>
+        <div>
+          <div class="title">BetterBodies Admin Console</div>
+          <div class="subtitle">Internal tools, read-only phase 1</div>
+        </div>
+      </div>
+      <span class="unlisted-pill">Unlisted &middot; no auth yet</span>
+    </header>
+
+    <nav class="console-nav" id="console-nav" aria-label="Console modules"></nav>
+
+    <main>
+      <section id="module-services" class="module-panel" data-module="services"></section>
+      <section id="module-schedule" class="module-panel" data-module="schedule"></section>
+      <section id="module-leads" class="module-panel" data-module="leads"></section>
+    </main>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+    <script src="./config.js"></script>
+    <script src="./apiClient.js"></script>
+    <script src="./icons.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
