@@ -3,9 +3,7 @@ import { CalendarDays, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SERVICES, DELIVERY_MODES, getServiceByKey } from "@/data/services";
 import { getServiceIcon } from "@/lib/serviceIcons";
-
-const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzXq9f6f1MCbmrZeocsYdWXHeKFx0BWpIaExA-rqAOGw4YuJAn7d9Ruaq48rokRreBV/exec";
+import { submitLead } from "@/lib/submitLead";
 
 const DEFAULT_CONTEXT = {
   topic: "",
@@ -117,45 +115,8 @@ export default function TrainingRequestModal({ open, context = {}, onClose }) {
     setStatus("sending");
     setStatusMessage("Sending request...");
 
-    const payload = {
-      form_type: "training_request",
-      form_title: "Training Request",
-      project_key: "betterbodies-feedback-2026",
-
-      lead_type: requestContext.leadIntent || "general_training",
-      lead_intent: requestContext.leadIntent || "general_training",
-      lead_source: requestContext.sourceSection || "",
-      source_section: requestContext.sourceSection || "",
-      cta_label: requestContext.ctaLabel || "",
-
-      service_needed: form.service_needed || requestContext.serviceNeeded || "",
-      selected_class: requestContext.selectedClass || "",
-      selected_class_id: requestContext.selectedClassId || "",
-
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      preferred_contact_method: form.preferred_contact_method,
-      preferred_timing: form.preferred_timing,
-      group_size: form.group_size,
-      organization: form.organization,
-      location: form.location,
-      message: form.message,
-
-      page_url: window.location.href,
-      submitted_at: new Date().toISOString(),
-      user_agent: navigator.userAgent,
-    };
-
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8",
-        },
-        body: JSON.stringify(payload),
-      });
+      await submitLead({ context: requestContext, form });
 
       setStatus("sent");
       setStatusMessage(
