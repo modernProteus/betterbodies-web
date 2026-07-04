@@ -6,6 +6,7 @@ import {
   Heart,
   RotateCcw,
   Shield,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -54,6 +55,15 @@ const services = [
       "Body awareness, personal safety, and self-defense-informed instruction rooted in practical confidence and prevention.",
     who: "Individuals, staff teams, gyms, community groups",
     cta: "Ask About Safety Training",
+  },
+  {
+    title: "Personal & Event Protection",
+    serviceNeeded: "Personal / Event Protection",
+    icon: ShieldCheck,
+    description:
+      "Personal and event protection, plus active-shooter evacuation planning, delivered calmly and professionally to keep people and gatherings safe.",
+    who: "Individuals, events, organizations, and teams needing on-site protection",
+    cta: "Ask About Protection",
   },
   {
     title: "Group / On-Site Training",

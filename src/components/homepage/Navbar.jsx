@@ -75,7 +75,7 @@ export default function Navbar({ onRequestTraining }) {
         {/* Mobile */}
         <div className="flex items-center gap-2 md:hidden">
           <a
-            href="tel:5125550123"
+            href="tel:5126630733"
             className="p-2 text-white/60 hover:text-white"
             aria-label="Call BetterBodies"
           >

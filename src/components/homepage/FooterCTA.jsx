@@ -1,8 +1,21 @@
 import React from "react";
-import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "./BrandLogo";
 import { scrollToSection } from "@/lib/useUpcomingClasses";
+
+const SOCIAL_LINKS = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/betterbodiescpr/",
+    icon: Instagram,
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/BetterBodiesATX",
+    icon: Facebook,
+  },
+];
 
 export default function FooterCTA({ onRequestTraining }) {
   return (
@@ -59,16 +72,38 @@ export default function FooterCTA({ onRequestTraining }) {
 
               <p className="flex gap-3">
                 <Phone className="h-5 w-5 shrink-0 text-red-400" />
-                <span>Phone number TBD</span>
+                <a href="tel:5126630733" className="hover:text-white">
+                  (512) 663-0733
+                </a>
               </p>
 
               <p className="flex gap-3">
                 <Mail className="h-5 w-5 shrink-0 text-red-400" />
-                <span>Email TBD</span>
+                <a
+                  href="mailto:betterbodiescpr@gmail.com"
+                  className="hover:text-white"
+                >
+                  betterbodiescpr@gmail.com
+                </a>
               </p>
             </div>
 
-            <p className="mt-6 border-t border-white/10 pt-5 text-xs text-white/45">
+            <div className="mt-6 flex gap-3 border-t border-white/10 pt-5">
+              {SOCIAL_LINKS.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-white/30 hover:text-white"
+                >
+                  <social.icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
+
+            <p className="mt-5 text-xs text-white/45">
               Preview site prepared for BetterBodies brand, website, and
               workflow review.
             </p>

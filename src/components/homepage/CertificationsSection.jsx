@@ -1,5 +1,46 @@
 import React from "react";
-import { ShieldCheck, Award, BadgeCheck, Heart } from "lucide-react";
+import {
+  ShieldCheck,
+  Award,
+  BadgeCheck,
+  Heart,
+  Dumbbell,
+  Building2,
+  Languages,
+} from "lucide-react";
+
+const instructorCredentials = [
+  {
+    icon: Dumbbell,
+    year: "1994",
+    text: "Master Personal Trainer",
+  },
+  {
+    icon: Building2,
+    year: "2008",
+    text: "BetterBodies established",
+  },
+  {
+    icon: Heart,
+    year: "2014",
+    text: "American Red Cross CPR Instructor (Adult, Child, Infant, AED)",
+  },
+  {
+    icon: ShieldCheck,
+    year: "2018",
+    text: "Active Shooter Evacuation & Personal Protection / Self-Defense certified",
+  },
+  {
+    icon: Award,
+    year: null,
+    text: "CPI Crisis Prevention certified",
+  },
+  {
+    icon: Languages,
+    year: null,
+    text: "Bilingual instruction available",
+  },
+];
 
 const certs = [
   {
@@ -75,6 +116,40 @@ export default function CertificationsSection() {
             <p className="text-[#888] text-xs font-semibold">AHA Training Site Badge + Partner Logos</p>
             <p className="text-[#aaa] text-xs">Add official badge images here when available</p>
           </div>
+        </div>
+
+        <div className="mt-10">
+          <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">
+            Dated &amp; Verifiable
+          </p>
+          <h3 className="font-heading text-xl md:text-2xl font-extrabold text-[#111]">
+            Sheldon's Credentials
+          </h3>
+          <p className="text-[#666] text-sm mt-2 max-w-md">
+            No fuzzy claims — just dated, verifiable training and certification
+            history.
+          </p>
+
+          <ul className="mt-5 space-y-3">
+            {instructorCredentials.map((credential) => (
+              <li
+                key={credential.text}
+                className="flex items-center gap-4 bg-white border border-[#e8e8e8] rounded-lg px-4 py-3"
+              >
+                <div className="w-9 h-9 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
+                  <credential.icon className="w-4 h-4 text-primary" />
+                </div>
+                {credential.year && (
+                  <span className="text-xs font-bold text-primary border border-primary/30 bg-primary/5 rounded px-2 py-0.5 flex-shrink-0">
+                    Since {credential.year}
+                  </span>
+                )}
+                <p className="text-[#333] text-sm leading-relaxed">
+                  {credential.text}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

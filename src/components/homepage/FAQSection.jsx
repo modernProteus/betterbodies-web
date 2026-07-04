@@ -32,6 +32,21 @@ const faqs = [
     answer:
       "Heartsaver CPR/AED is for non-medical individuals — teachers, parents, gym staff, and general public. BLS (Basic Life Support) is required for healthcare professionals like nurses, EMTs, and medical assistants.",
   },
+  {
+    question: "Will I actually practice CPR, or just watch?",
+    answer:
+      "Every participant trains hands-on and must demonstrate on the mannequin to pass. Classes are hands-on and high-energy by design.",
+  },
+  {
+    question: "How long is my CPR certification valid?",
+    answer:
+      "Two years. A yearly skills refresh is recommended to stay sharp.",
+  },
+  {
+    question: "Do you cover adult, child, and infant CPR?",
+    answer:
+      "Yes, including AED (American Red Cross curriculum).",
+  },
 ];
 
 export default function FAQSection() {
