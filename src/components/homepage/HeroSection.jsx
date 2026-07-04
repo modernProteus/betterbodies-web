@@ -7,6 +7,8 @@ import HeartbeatLine from "./hero/HeartbeatLine";
 import GeometryTexture from "./hero/GeometryTexture";
 import EasterEgg from "./hero/EasterEgg";
 import { scrollToSection } from "@/lib/useUpcomingClasses";
+import useEnterPulse from "@/hooks/useEnterPulse";
+import { cn } from "@/lib/utils";
 
 const containerVariants = {
   hidden: {},
@@ -26,6 +28,7 @@ const itemVariants = {
 
 export default function HeroSection({ heroImage, onRequestTraining }) {
   const shouldReduceMotion = useReducedMotion();
+  const { ref: ctaPulseRef, pulsed: ctaPulsed } = useEnterPulse();
 
   return (
     <section className="relative overflow-hidden bg-[#0f0f0f]" id="hero">
@@ -95,6 +98,7 @@ export default function HeroSection({ heroImage, onRequestTraining }) {
           className="mb-10 flex flex-col gap-3 sm:flex-row"
         >
           <Button
+            ref={ctaPulseRef}
             size="lg"
             onClick={() =>
               onRequestTraining?.({
@@ -105,7 +109,10 @@ export default function HeroSection({ heroImage, onRequestTraining }) {
                 ctaLabel: "Request Training",
               })
             }
-            className="hero-cta-pulse h-13 gap-2 rounded-md bg-primary px-7 text-base font-bold text-white shadow-lg shadow-primary/25 hover:bg-primary/90"
+            className={cn(
+              "h-13 gap-2 rounded-md bg-primary px-7 text-base font-bold text-white shadow-lg shadow-primary/25 hover:bg-primary/90",
+              ctaPulsed && "enter-pulse-once"
+            )}
           >
             Request Training
             <ArrowRight className="h-4 w-4" />

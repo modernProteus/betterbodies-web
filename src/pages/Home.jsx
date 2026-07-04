@@ -17,6 +17,8 @@ import ContactForm from "../components/homepage/ContactForm";
 import FooterCTA from "../components/homepage/FooterCTA";
 import StickyBookingBar from "../components/homepage/StickyBookingBar";
 import TrainingRequestModal from "../components/homepage/TrainingRequestModal";
+import PersistentSignature from "../components/homepage/hero/PersistentSignature";
+import ScrollProgressLine from "../components/homepage/hero/ScrollProgressLine";
 import useScrollReveal from "../hooks/useScrollReveal";
 
 const HERO_IMAGE = `${
@@ -47,6 +49,9 @@ export default function Home() {
 
   return (
     <>
+      <ScrollProgressLine />
+      <PersistentSignature />
+
       <Navbar onRequestTraining={openTrainingRequest} />
 
       <HeroSection
