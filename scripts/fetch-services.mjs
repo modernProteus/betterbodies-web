@@ -38,9 +38,7 @@ function normalizeService(raw) {
 
 async function fetchServices() {
   if (!APPS_SCRIPT_URL) {
-    console.warn(
-      "[fetch-services] APPS_SCRIPT_URL is not set. Keeping the existing services.generated.json."
-    );
+    console.warn("[fetch-services] Kept snapshot (APPS_SCRIPT_URL not set)");
     return;
   }
 
@@ -66,12 +64,10 @@ async function fetchServices() {
   writeFileSync(OUTPUT_PATH, `${JSON.stringify(services, null, 2)}\n`);
 
   console.log(
-    `[fetch-services] Wrote ${services.length} services to services.generated.json`
+    `[fetch-services] Fetched ${services.length} services from sheet`
   );
 }
 
 fetchServices().catch((error) => {
-  console.warn(
-    `[fetch-services] Fetch failed, keeping the existing services.generated.json: ${error.message}`
-  );
+  console.warn(`[fetch-services] Kept snapshot (${error.message})`);
 });

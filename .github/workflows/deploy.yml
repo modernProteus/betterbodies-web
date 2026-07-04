@@ -25,6 +25,7 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       DEPLOY_TARGET: pages
+      APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL }}
 
     steps:
       - name: Checkout
