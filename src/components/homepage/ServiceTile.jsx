@@ -205,18 +205,16 @@ export default function ServiceTile({
   return (
     <motion.div
       ref={tileRef}
-      layout={!shouldReduceMotion && displayState !== "form"}
+      layout={!shouldReduceMotion}
       transition={{ duration, layout: { duration } }}
       className={cn(
         "flex flex-col rounded-3xl p-6 text-slate-950 md:p-7",
         isFeatured
           ? "border-2 border-red-600 bg-white"
           : "border border-slate-200 bg-slate-50",
-        isExpanded && "lg:col-span-3",
-        !isExpanded && isFeatured && "sm:col-span-2 lg:col-span-2",
-        !isExpanded && "min-h-[180px] justify-center",
-        displayState === "form" &&
-          "fixed inset-0 z-50 overflow-y-auto rounded-none p-5 md:static md:z-auto md:overflow-visible md:rounded-3xl md:p-7"
+        isExpanded && "relative z-10",
+        displayState === "form" && "sm:col-span-2 lg:col-span-3",
+        !isExpanded && "min-h-[180px] justify-center"
       )}
     >
       <button
@@ -228,7 +226,7 @@ export default function ServiceTile({
         className={cn(
           "flex w-full text-left",
           !isExpanded
-            ? "cursor-pointer flex-col items-center gap-2 text-center transition hover:-translate-y-0.5 hover:shadow-md rounded-2xl"
+            ? "cursor-pointer flex-col items-center gap-2 rounded-2xl text-center transition duration-150 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg hover:delay-150 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:hover:translate-y-0"
             : "items-center gap-4"
         )}
       >
@@ -290,10 +288,7 @@ export default function ServiceTile({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration, ease: "easeInOut" }}
-            className={cn(
-              "overflow-hidden",
-              displayState === "form" && "md:overflow-visible"
-            )}
+            className="overflow-hidden"
           >
             {/* Plain conditional (not AnimatePresence) so detail<->form never
                 relies on animating away from height:"auto" on exit, which
@@ -343,7 +338,7 @@ export default function ServiceTile({
                     </div>
                   ) : (
                     <>
-                      <div className="grid gap-6 md:grid-cols-2">
+                      <div className="grid gap-6 lg:grid-cols-2">
                         <div>
                           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                             Requesting: {activeRequest?.serviceNeeded}
@@ -362,7 +357,7 @@ export default function ServiceTile({
 
                         <form
                           onSubmit={handleSubmit}
-                          className="grid gap-4 md:border-l md:border-slate-200 md:pl-6"
+                          className="grid gap-4 lg:border-l lg:border-slate-200 lg:pl-6"
                         >
                           <div className="grid gap-4 md:grid-cols-2">
                             <label className="grid gap-2 text-sm font-bold text-slate-800">
