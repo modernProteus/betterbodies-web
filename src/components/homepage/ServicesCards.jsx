@@ -9,6 +9,9 @@ export default function ServicesCards({ onRequestTraining }) {
   const tier2Services = getServicesByTier(2);
   const tier3Services = getServicesByTier(3);
   const allServices = [...tier1Services, ...tier2Services, ...tier3Services];
+  const firstNonFeaturedKey = allServices.find(
+    (service) => service.tier !== 1
+  )?.key;
 
   const [expandedKey, setExpandedKey] = useState(
     () => tier1Services[0]?.key ?? null
@@ -51,6 +54,7 @@ export default function ServicesCards({ onRequestTraining }) {
               key={service.key}
               service={service}
               isFeatured={service.tier === 1}
+              showHint={service.key === firstNonFeaturedKey}
               isExpanded={expandedKey === service.key}
               onExpand={() => setExpandedKey(service.key)}
               onCollapse={() => setExpandedKey(null)}

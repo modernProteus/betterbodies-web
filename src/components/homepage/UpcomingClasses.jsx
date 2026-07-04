@@ -5,6 +5,7 @@ import useUpcomingClasses, {
   buildEventTimeRange,
   buildSelectedClassLabel,
   formatEventDate,
+  scrollToSection,
 } from "@/lib/useUpcomingClasses";
 import { getServiceByKey, getServiceKeyFromClassType } from "@/data/services";
 
@@ -62,15 +63,7 @@ export default function UpcomingClasses({ onRequestTraining }) {
 
             <Button
               className="mt-5 bg-red-600 hover:bg-red-700"
-              onClick={() =>
-                onRequestTraining?.({
-                  topic: "cpr",
-                  sourceSection: "upcoming_classes_empty",
-                  leadIntent: "general_training",
-                  serviceNeeded: "Not sure yet",
-                  ctaLabel: "Request Class Info",
-                })
-              }
+              onClick={() => scrollToSection("#contact")}
             >
               Request Class Info
               <ArrowRight className="ml-2 h-4 w-4" />
