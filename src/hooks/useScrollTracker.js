@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
-const MIN_SPEED = 0.6;
-const MAX_SPEED = 2.8;
+export const MIN_SPEED = 0.6;
+export const MAX_SPEED = 2.8;
 const VELOCITY_TO_SPEED = 0.6;
 const EASE_PER_EVENT = 0.25;
 const IDLE_RESET_MS = 220;
