@@ -4,6 +4,9 @@ name: Deploy BetterBodies preview to GitHub Pages
   push:
     branches:
       - main
+  repository_dispatch:
+    types:
+      - publish-services
   workflow_dispatch:
 
 permissions:
