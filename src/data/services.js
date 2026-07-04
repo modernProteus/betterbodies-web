@@ -4,7 +4,25 @@
 // fetch/normalize logic and code.gs for the Apps Script `services` endpoint.
 import SERVICES_GENERATED from "./services.generated.json";
 
-export const SERVICES = SERVICES_GENERATED;
+// Dual-path fields for services that offer both a training path and a
+// done-for-you service path (e.g. Protection). These are layered on top of
+// the sheet-generated data in code because the "Public Services" sheet does
+// not have columns for them yet. If more services need a dual path, promote
+// these to real sheet columns and drop this override.
+const DUAL_PATH_OVERRIDES = {
+  protection: {
+    primaryServiceLabel: "Personal / Event Protection (Training)",
+    secondaryCta: "Book Protection Service",
+    secondaryLeadIntent: "protection_service",
+    secondaryServiceLabel: "Personal / Event Protection (Service)",
+  },
+};
+
+export const SERVICES = SERVICES_GENERATED.map((service) =>
+  DUAL_PATH_OVERRIDES[service.key]
+    ? { ...service, ...DUAL_PATH_OVERRIDES[service.key] }
+    : service
+);
 
 // Group/on-site is a delivery mode, not a tier service. Kept separate so it
 // doesn't render as a peer card, but it's still resolvable by the modal.

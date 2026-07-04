@@ -19,8 +19,13 @@ const DEFAULT_CONTEXT = {
 
 const SERVICE_OPTIONS = [
   "Not sure yet",
-  ...SERVICES.filter((service) => service.active).map(
-    (service) => service.title
+  ...SERVICES.filter((service) => service.active).flatMap((service) =>
+    service.secondaryCta
+      ? [
+          service.primaryServiceLabel ?? service.title,
+          service.secondaryServiceLabel,
+        ]
+      : [service.title]
   ),
   DELIVERY_MODES.group.title,
   "Other",

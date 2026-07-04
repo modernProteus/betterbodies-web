@@ -3,23 +3,36 @@ import { ArrowRight, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getServicesByTier, DELIVERY_MODES } from "@/data/services";
 import { getServiceIcon } from "@/lib/serviceIcons";
+import ServiceAccordionRow from "./ServiceAccordionRow";
 
-const TIER_GROUPS = [
-  { tier: 1, label: "Start here" },
+const ACCORDION_TIER_GROUPS = [
   { tier: 2, label: "Where BetterBodies began" },
   { tier: 3, label: "Go further" },
 ];
 
 export default function ServicesCards({ onRequestTraining }) {
   const [activeKey, setActiveKey] = useState(null);
+  const [openKey, setOpenKey] = useState(null);
 
-  const requestService = (service) =>
+  const requestService = (service, overrides = {}) =>
     onRequestTraining?.({
       topic: service.key,
       sourceSection: "services",
-      leadIntent: service.leadIntent,
-      serviceNeeded: service.title,
-      ctaLabel: service.cta,
+      leadIntent: overrides.leadIntent ?? service.leadIntent,
+      serviceNeeded: overrides.serviceNeeded ?? service.title,
+      ctaLabel: overrides.ctaLabel ?? service.cta,
+    });
+
+  const requestPrimary = (service) =>
+    requestService(service, {
+      serviceNeeded: service.primaryServiceLabel ?? service.title,
+    });
+
+  const requestSecondary = (service) =>
+    requestService(service, {
+      leadIntent: service.secondaryLeadIntent,
+      serviceNeeded: service.secondaryServiceLabel,
+      ctaLabel: service.secondaryCta,
     });
 
   const requestGroupTraining = () => {
@@ -33,6 +46,8 @@ export default function ServicesCards({ onRequestTraining }) {
       ctaLabel: group.cta,
     });
   };
+
+  const tier1Services = getServicesByTier(1);
 
   return (
     <section className="bg-white py-20">
@@ -53,7 +68,63 @@ export default function ServicesCards({ onRequestTraining }) {
           </p>
         </div>
 
-        {TIER_GROUPS.map(({ tier, label }) => {
+        <div className="mt-12">
+          <p className="mb-4 text-xs font-bold uppercase tracking-wide text-slate-400">
+            Start here
+          </p>
+
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {tier1Services.map((service) => {
+              const Icon = getServiceIcon(service.icon);
+              const isActive = activeKey === service.key;
+
+              return (
+                <article
+                  key={service.key}
+                  className="reveal-on-scroll flex min-h-[300px] flex-col rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition hover:-translate-y-1 hover:bg-white hover:shadow-lg"
+                  onMouseEnter={() => setActiveKey(service.key)}
+                  onMouseLeave={() => setActiveKey(null)}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-red-600 text-white">
+                      <Icon className="h-6 w-6" />
+                    </div>
+
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                      {isActive ? "Ready" : "Training"}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-5 text-xl font-extrabold text-slate-950">
+                    {service.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-6 text-slate-700">
+                    {service.description}
+                  </p>
+
+                  <p className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    Best for
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-600">{service.who}</p>
+
+                  <div className="mt-auto pt-6">
+                    <Button
+                      className="w-full bg-slate-950 hover:bg-red-600"
+                      onClick={() => requestService(service)}
+                    >
+                      {service.cta}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+
+        {ACCORDION_TIER_GROUPS.map(({ tier, label }) => {
           const tierServices = getServicesByTier(tier);
 
           if (tierServices.length === 0) return null;
@@ -64,56 +135,21 @@ export default function ServicesCards({ onRequestTraining }) {
                 {label}
               </p>
 
-              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {tierServices.map((service) => {
-                  const Icon = getServiceIcon(service.icon);
-                  const isActive = activeKey === service.key;
-
-                  return (
-                    <article
-                      key={service.key}
-                      className="reveal-on-scroll flex min-h-[300px] flex-col rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition hover:-translate-y-1 hover:bg-white hover:shadow-lg"
-                      onMouseEnter={() => setActiveKey(service.key)}
-                      onMouseLeave={() => setActiveKey(null)}
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-red-600 text-white">
-                          <Icon className="h-6 w-6" />
-                        </div>
-
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-500">
-                          {isActive ? "Ready" : "Training"}
-                        </span>
-                      </div>
-
-                      <h3 className="mt-5 text-xl font-extrabold text-slate-950">
-                        {service.title}
-                      </h3>
-
-                      <p className="mt-3 text-sm leading-6 text-slate-700">
-                        {service.description}
-                      </p>
-
-                      <p className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-500">
-                        Best for
-                      </p>
-
-                      <p className="mt-1 text-sm text-slate-600">
-                        {service.who}
-                      </p>
-
-                      <div className="mt-auto pt-6">
-                        <Button
-                          className="w-full bg-slate-950 hover:bg-red-600"
-                          onClick={() => requestService(service)}
-                        >
-                          {service.cta}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className="reveal-on-scroll divide-y divide-slate-200 rounded-3xl border border-slate-200 bg-slate-50">
+                {tierServices.map((service) => (
+                  <ServiceAccordionRow
+                    key={service.key}
+                    service={service}
+                    isOpen={openKey === service.key}
+                    onToggle={() =>
+                      setOpenKey((current) =>
+                        current === service.key ? null : service.key
+                      )
+                    }
+                    onRequestPrimary={() => requestPrimary(service)}
+                    onRequestSecondary={() => requestSecondary(service)}
+                  />
+                ))}
               </div>
 
               {tier === 3 && (
