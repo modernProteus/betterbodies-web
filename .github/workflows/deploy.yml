@@ -21,6 +21,7 @@ jobs:
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      DEPLOY_TARGET: pages
 
     steps:
       - name: Checkout

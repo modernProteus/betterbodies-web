@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback: serve index.html for any path so client-side (React Router)
+# routes and refreshes on deep links don't 404. Netlify does NOT set
+# DEPLOY_TARGET, so vite.config.js uses base "/" for this build.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
