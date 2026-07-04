@@ -5,35 +5,86 @@ Notes: * - Submissions are written to tabs based on form_type. * - Status checks
 read whether each tab has one or more response rows. * - JSONP is supported for
 browser-side status board loading.
 *******************************************************/
-/******************************************************* * REQUIRED CONFIG
-*******************************************************/ // Paste your target
-Google Sheet ID here. // It is the long ID in: //
-https://docs.google.com/spreadsheets/d/SPREADSHEET_ID_HERE/edit const
-SPREADSHEET_ID = "1eRYpgwoA449EjPJLRcZdxxl0-Gvfhe5sVFA-kCseY3c"; // Must match
-the hidden project_key field in every HTML form. const EXPECTED_PROJECT_KEY =
-"betterbodies-feedback-2026";
-/******************************************************* * FORM ROUTING CONFIG
-*******************************************************/ const FORM_CONFIG = {
-brand_website_direction: { sheetName: "Feedback Submissions", title: "Brand +
-Website Direction", required: true, url:
-"/feedback/brand-website-direction.html" }, Feedback Submissions: {
-sheetName: "Operations Booking Workflow", title: "Operations + Booking
-Workflow", required: true, url: "/feedback/operations-booking-workflow.html" },
-Feedback Submissions: { sheetName: "Logo Concept Feedback", title: "Logo
-Concept Review", required: true, url:
-"/feedback/betterbodies-logo-concepts.html" }, Feedback Submissions: {
-sheetName: "Photo Content Inventory", title: "Photo + Content Inventory",
-required: false, url: "/feedback/photo-content-inventory.html" },
-Feedback Submissions: { sheetName: "Voice Messaging Review", title: "Voice +
-Messaging Review", required: false, url: "/feedback/voice-messaging-review.html"
-}, Change Requests: { sheetName: "Site Update Requests", title: "Website
-Update Request", required: false, url: "/feedback/site-update-request.html" } };
-/******************************************************* * SHEET COLUMNS * *
-Keep this generic because each form has different fields * and you expect only
-1-2 submissions per form.
-*******************************************************/ const GENERIC_HEADERS =
-[ "Timestamp", "Form Type", "Form Title", "Submitted By", "Contact", "Page URL",
-"Summary", "Processed?", "Profile Updated?", "Notes", "Raw JSON" ];
+/*******************************************************
+ * REQUIRED CONFIG
+ *******************************************************/
+// Paste your target Google Sheet ID here. It is the long ID in:
+// https://docs.google.com/spreadsheets/d/SPREADSHEET_ID_HERE/edit
+const SPREADSHEET_ID = "1eRYpgwoA449EjPJLRcZdxxl0-Gvfhe5sVFA-kCseY3c";
+// Must match the hidden project_key field in every HTML form.
+const EXPECTED_PROJECT_KEY = "betterbodies-feedback-2026";
+/*******************************************************
+ * FORM ROUTING CONFIG
+ *
+ * NOTE (pre-existing bug, not introduced here): this table has the literal
+ * key "Feedback Submissions" repeated four times below. JS object literals
+ * silently let a later duplicate key overwrite an earlier one, so only the
+ * last "Feedback Submissions" entry (Voice Messaging Review) actually
+ * exists on FORM_CONFIG at runtime; the other three (Operations Booking
+ * Workflow, Logo Concept Feedback, Photo Content Inventory) are
+ * unreachable by key lookup. This looks like each entry originally had its
+ * own slug (matching its form's real form_type value) that got lost.
+ * Verify against the live deployed Apps Script and correct the keys before
+ * relying on this table for routing.
+ *******************************************************/
+const FORM_CONFIG = {
+  brand_website_direction: {
+	sheetName: "Feedback Submissions",
+	title: "Brand + Website Direction",
+	required: true,
+	url: "/feedback/brand-website-direction.html"
+  },
+  "Feedback Submissions": {
+	sheetName: "Operations Booking Workflow",
+	title: "Operations + Booking Workflow",
+	required: true,
+	url: "/feedback/operations-booking-workflow.html"
+  },
+  "Feedback Submissions": {
+	sheetName: "Logo Concept Feedback",
+	title: "Logo Concept Review",
+	required: true,
+	url: "/feedback/betterbodies-logo-concepts.html"
+  },
+  "Feedback Submissions": {
+	sheetName: "Photo Content Inventory",
+	title: "Photo + Content Inventory",
+	required: false,
+	url: "/feedback/photo-content-inventory.html"
+  },
+  "Feedback Submissions": {
+	sheetName: "Voice Messaging Review",
+	title: "Voice + Messaging Review",
+	required: false,
+	url: "/feedback/voice-messaging-review.html"
+  },
+  "Change Requests": {
+	sheetName: "Site Update Requests",
+	title: "Website Update Request",
+	required: false,
+	url: "/feedback/site-update-request.html"
+  }
+};
+
+/*******************************************************
+ * SHEET COLUMNS
+ *
+ * Keep this generic because each form has different fields and you expect
+ * only 1-2 submissions per form.
+ *******************************************************/
+const GENERIC_HEADERS = [
+  "Timestamp",
+  "Form Type",
+  "Form Title",
+  "Submitted By",
+  "Contact",
+  "Page URL",
+  "Summary",
+  "Processed?",
+  "Profile Updated?",
+  "Notes",
+  "Raw JSON"
+];
 /******************************************************* * GET HANDLER
 *******************************************************/ function doGet(e) {
 const params = e && e.parameter ? e.parameter : {}; const action = params.action
@@ -46,6 +97,10 @@ if (action === "status") {
 
   payload = getUpcomingEvents();
 
+} else if (action === "services") {
+
+  payload = getPublicServices();
+
 } else {
 
   payload = {
@@ -54,7 +109,7 @@ if (action === "status") {
 
 	message: "BetterBodies feedback endpoint is live.",
 
-	availableActions: ["status", "events"]
+	availableActions: ["status", "events", "services"]
 
   };
 
@@ -261,4 +316,111 @@ function rowToObject(headers, row) {
   });
 
   return obj;
+}
+
+/*******************************************************
+ * PUBLIC SERVICES API
+ *******************************************************/
+
+const PUBLIC_SERVICES_SHEET_NAME = "Public Services";
+
+function getPublicServices() {
+  const spreadsheet = getSpreadsheet();
+  const sheet = spreadsheet.getSheetByName(PUBLIC_SERVICES_SHEET_NAME);
+
+  if (!sheet) {
+	return {
+	  ok: true,
+	  updatedAt: new Date().toISOString(),
+	  services: []
+	};
+  }
+
+  const values = sheet.getDataRange().getDisplayValues();
+
+  if (values.length <= 1) {
+	return {
+	  ok: true,
+	  updatedAt: new Date().toISOString(),
+	  services: []
+	};
+  }
+
+  const headers = values[0].map(normalizeHeader);
+  const rows = values.slice(1);
+
+  const services = rows
+	.map((row) => rowToObject(headers, row))
+	.filter((item) => {
+	  const isActive = ["true", "yes", "1"].includes(
+		String(item.active).trim().toLowerCase()
+	  );
+
+	  return isActive && item.key && item.title;
+	})
+	.map((item) => ({
+	  key: item.key,
+	  tier: Number(item.tier) || 0,
+	  active: true,
+	  title: item.title,
+	  icon: item.icon || "MessageSquare",
+	  description: item.description || "",
+	  who: item.who || "",
+	  cta: item.cta || "",
+	  leadIntent: item.lead_intent || "service_interest",
+	  modal: {
+		title: item.modal_title || item.title,
+		description: item.modal_description || ""
+	  },
+	  sort: Number(item.sort) || 0
+	}))
+	.sort((a, b) => {
+	  if (a.tier !== b.tier) return a.tier - b.tier;
+	  return a.sort - b.sort;
+	});
+
+  return {
+	ok: true,
+	updatedAt: new Date().toISOString(),
+	services
+  };
+}
+
+/*******************************************************
+ * PUBLISH MENU
+ *
+ * Adds "Better Bodies > Publish services to site" to the sheet's UI.
+ * publishToSite() reads BUILD_HOOK_URL from Script Properties
+ * (File > Project Settings > Script Properties) and pings the Netlify
+ * build hook so it is never hardcoded or committed.
+ *******************************************************/
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+	.createMenu("Better Bodies")
+	.addItem("Publish services to site", "publishToSite")
+	.addToUi();
+}
+
+function publishToSite() {
+  const hookUrl = PropertiesService.getScriptProperties().getProperty(
+	"BUILD_HOOK_URL"
+  );
+
+  if (!hookUrl) {
+	SpreadsheetApp.getActive().toast(
+	  "BUILD_HOOK_URL is not set in Script Properties. Publish canceled.",
+	  "Better Bodies",
+	  8
+	);
+	return;
+  }
+
+  UrlFetchApp.fetch(hookUrl, { method: "post" });
+
+  SpreadsheetApp.getActive().toast(
+	"Publishing. Site updates in a few minutes.",
+	"Better Bodies",
+	8
+  );
 }
