@@ -11,6 +11,8 @@ import WhoWeServe from "../components/homepage/WhoWeServe";
 import Testimonials from "../components/homepage/Testimonials";
 import UrgencyCTA from "../components/homepage/UrgencyCTA";
 import FAQSection from "../components/homepage/FAQSection";
+import WellnessResources from "../components/homepage/WellnessResources";
+import CommunityResource from "../components/homepage/CommunityResource";
 import ContactForm from "../components/homepage/ContactForm";
 import FooterCTA from "../components/homepage/FooterCTA";
 import StickyBookingBar from "../components/homepage/StickyBookingBar";
@@ -73,6 +75,10 @@ export default function Home() {
       <UrgencyCTA onRequestTraining={openTrainingRequest} />
 
       <FAQSection />
+
+      <WellnessResources onRequestTraining={openTrainingRequest} />
+
+      <CommunityResource />
 
       <ContactForm />
 

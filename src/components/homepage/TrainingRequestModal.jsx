@@ -22,6 +22,7 @@ const SERVICE_OPTIONS = [
   "Group / On-Site Training",
   "Personal Safety / Self-Defense",
   "Crisis Readiness",
+  "Holistic Wellness / Apothecary",
   "Other",
 ];
 
