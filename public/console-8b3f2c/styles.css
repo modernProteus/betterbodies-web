@@ -342,13 +342,7 @@ main {
   margin: 0;
 }
 
-/* Row builder form */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
+/* Card builder side controls */
 .field {
   display: flex;
   flex-direction: column;
@@ -581,17 +575,260 @@ main {
   margin-bottom: 0.3rem;
 }
 
-.publish-reminder {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
+.two-speeds-banner {
   background: var(--red-tint);
   border: 1px solid hsl(0 70% 88%);
   color: var(--red-strong);
   border-radius: var(--radius);
-  padding: 0.9rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 0.85rem;
-  margin-top: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.how-it-works {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 0.9rem 1.1rem;
+}
+
+.how-it-works summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-family: var(--font-heading);
+}
+
+.how-it-works[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+.how-it-works-steps {
+  padding-left: 1.3rem;
+}
+
+.how-it-works-heading {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 1rem 0 0.4rem;
+}
+
+/* Card builder: tier-reactive WYSIWYG mock */
+.card-builder-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px) 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .card-builder-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mock-card-wrap {
+  position: relative;
+}
+
+.mock-card {
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  background: hsl(0 0% 98%);
+}
+
+/* Tier 1 = red outline + bolder title, mirrors the live site (see the code
+   comment above setupCardBuilder in app.js for the exact source of truth). */
+.mock-card[data-tier="1"] {
+  border: 2px solid var(--red);
+  background: white;
+}
+
+.mock-card[data-tier="1"] .mock-title-input {
+  font-weight: 900;
+}
+
+.mock-card:not([data-tier="1"]) .mock-title-input {
+  font-weight: 800;
+}
+
+.mock-icon-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 1rem;
+  background: var(--red);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.mock-icon-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mock-icon-btn:hover {
+  background: var(--red-strong);
+}
+
+.mock-field {
+  margin-bottom: 0.9rem;
+}
+
+.mock-field:last-child {
+  margin-bottom: 0;
+}
+
+.edit-inline {
+  display: block;
+  width: 100%;
+  border: 1px dashed transparent;
+  border-radius: 0.4rem;
+  padding: 0.2rem 0.35rem;
+  font-family: inherit;
+  background: transparent;
+  color: var(--ink);
+}
+
+.edit-inline:hover,
+.edit-inline:focus {
+  border-color: var(--border);
+  background: white;
+  outline: none;
+}
+
+.mock-title-input {
+  font-size: 1.05rem;
+  font-family: var(--font-heading);
+}
+
+.mock-desc-input {
+  font-size: 0.85rem;
+  color: var(--muted);
+  resize: vertical;
+  min-height: 3.6em;
+}
+
+.mock-who-input {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.mock-cta {
+  display: inline-flex;
+  background: var(--red);
+  border-radius: 999px;
+  padding: 0.1rem 0.3rem;
+}
+
+.mock-cta-input {
+  color: white;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-align: center;
+  min-width: 8em;
+}
+
+.mock-cta-input:hover,
+.mock-cta-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: transparent;
+}
+
+.icon-popover {
+  position: absolute;
+  z-index: 15;
+  top: 0.5rem;
+  left: 1.25rem;
+  width: 280px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  padding: 0.5rem;
+}
+
+.icon-popover.hidden {
+  display: none;
+}
+
+.builder-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-content: start;
+}
+
+.generated-id {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.85rem;
+  background: hsl(0 0% 96%);
+}
+
+.generated-id code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-weight: 700;
+}
+
+.key-mode-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--red);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.helper-text {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.segmented-btn {
+  border: none;
+  background: white;
+  color: var(--ink);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+}
+
+.segmented-btn:last-child {
+  border-right: none;
+}
+
+.segmented-btn.selected {
+  background: var(--red);
+  color: white;
+}
+
+.hidden {
+  display: none !important;
 }
 
 .coming-soon-panel {

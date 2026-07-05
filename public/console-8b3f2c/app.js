@@ -69,6 +69,14 @@
     return wrap;
   }
 
+  function fieldLabel(text, helpText) {
+    const label = document.createElement("span");
+    label.className = "field-label";
+    label.appendChild(document.createTextNode(text + " "));
+    label.appendChild(createInfoTooltip(helpText));
+    return label;
+  }
+
   document.addEventListener("click", (event) => {
     if (!event.target.closest(".info-icon")) {
       document
@@ -304,83 +312,40 @@
    * Services module
    * ------------------------------------------------- */
 
-  const FIELD_DEFS = [
-    {
-      key: "key",
-      label: "key",
-      type: "text",
-      help:
-        "Unique lowercase id with underscores, e.g. aed_firstaid. Used internally to match this service elsewhere in the codebase. Avoid changing it once a service is live.",
-    },
-    {
-      key: "active",
-      label: "active",
-      type: "checkbox",
-      default: true,
-      help:
-        "Whether this service shows on the public site. Unchecked rows are saved but hidden everywhere. Not in the original field list but required by the sheet's real column order, so it's included here to keep the row paste-ready.",
-    },
-    {
-      key: "tier",
-      label: "tier",
-      type: "number",
-      help: "Which tier/section this service displays under on the site (currently 1-4).",
-    },
-    {
-      key: "sort",
-      label: "sort",
-      type: "number",
-      help: "Order within its tier. Lower numbers show first.",
-    },
-    {
-      key: "title",
-      label: "title",
-      type: "text",
-      help: "The service name shown on the card and in the request popup.",
-    },
-    {
-      key: "icon",
-      label: "icon",
-      type: "icon",
-      help: "Icon shown on the card. Pick from the curated set below; anything else falls back to a generic message icon.",
-    },
-    {
-      key: "description",
-      label: "description",
-      type: "textarea",
-      help: "A sentence or two shown on the card, under the title.",
-    },
-    {
-      key: "who",
-      label: "who",
-      type: "text",
-      help: "Who this service is for. Shown as a supporting line on the card.",
-    },
-    {
-      key: "cta",
-      label: "cta",
-      type: "text",
-      help: 'Button text on the card, e.g. "Request CPR Training".',
-    },
-    {
-      key: "lead_intent",
-      label: "lead_intent",
-      type: "text",
-      help: "Internal tag sent with lead submissions so follow-up routing knows what someone asked about.",
-    },
-    {
-      key: "modal_title",
-      label: "modal_title",
-      type: "text",
-      help: "Heading shown in the popup form when someone clicks the CTA.",
-    },
-    {
-      key: "modal_description",
-      label: "modal_description",
-      type: "textarea",
-      help: "Supporting text shown in the popup above the contact form.",
-    },
+  // Real "Public Services" sheet column order. The row builder must output
+  // exactly this order, quoted correctly, for a paste to line up.
+  const CSV_COLUMNS = [
+    "key",
+    "active",
+    "tier",
+    "sort",
+    "title",
+    "icon",
+    "description",
+    "who",
+    "cta",
+    "lead_intent",
+    "modal_title",
+    "modal_description",
   ];
+
+  const HELP_TEXT = {
+    key: "Auto-generated from the title: lowercase, spaces and punctuation become underscores. Used internally to match this service elsewhere in the code. A live service's key should not change, so only override it if you really need to.",
+    active:
+      "Whether this service shows on the public site. Unchecked rows are saved but hidden everywhere.",
+    tier: "Which tier/section this shows under on the site (1 to 4). Tier 1 gets the red outline treatment shown in the preview; tiers 2-4 use the calm default look.",
+    sort: "Order within its tier. Lower numbers show first.",
+    title: "The service name shown on the card and in the request popup.",
+    icon: "Icon shown on the card. Tap it to pick from the curated set; anything else falls back to a generic message icon.",
+    description: "A sentence or two shown on the card, under the title.",
+    who: "Who this service is for. Shown as \"Best for\" on the card.",
+    cta: 'Button text on the card, e.g. "Request CPR Training".',
+    lead_intent:
+      "Internal tag sent with lead submissions so follow-up routing knows what someone asked about.",
+    modal_title: "Heading shown in the popup form when someone clicks the CTA.",
+    modal_description:
+      "Supporting text shown in the popup above the contact form.",
+  };
 
   function csvField(value) {
     const str = String(value ?? "");
@@ -391,7 +356,7 @@
   }
 
   function buildCsvRow(values) {
-    return FIELD_DEFS.map((field) => csvField(values[field.key])).join(",");
+    return CSV_COLUMNS.map((key) => csvField(values[key])).join(",");
   }
 
   function copyToClipboard(text) {
@@ -407,6 +372,22 @@
     document.execCommand("copy");
     temp.remove();
     return Promise.resolve();
+  }
+
+  // Lowercase, strip diacritics, collapse anything that isn't a-z0-9 into a
+  // single underscore. Shared by the auto-key generator and the manual
+  // override input, so both always land on the same slug-safe alphabet.
+  function sanitizeToSlugChars(raw) {
+    return String(raw || "")
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, "_")
+      .replace(/_{2,}/g, "_");
+  }
+
+  function slugify(title) {
+    return sanitizeToSlugChars(title).replace(/^_+|_+$/g, "");
   }
 
   function renderServicePreviewCards(container, services) {
@@ -438,7 +419,7 @@
     root.innerHTML = `
       <div class="panel-intro">
         <h2>Services</h2>
-        <p>Public-safe deep links, a live read-only preview of active services, and a row builder for adding new ones to the sheet.</p>
+        <p>Public-safe deep links, a live read-only preview of active services, and a card builder for adding new ones to the sheet.</p>
       </div>
 
       <div class="section">
@@ -458,10 +439,13 @@
 
       <div class="section">
         <div class="section-heading">
-          <h3>Row builder</h3>
+          <h3>Card builder</h3>
+        </div>
+        <div class="two-speeds-banner">
+          Classes update instantly (no Publish). Services need Publish to appear.
         </div>
         <div class="card">
-          <form id="service-row-form" class="form-grid"></form>
+          <div class="card-builder-grid" id="card-builder-grid"></div>
           <div class="csv-output">
             <label class="field-label" for="csv-result">CSV row (paste into the Public Services tab)</label>
             <textarea id="csv-result" readonly rows="2"></textarea>
@@ -473,90 +457,312 @@
       </div>
 
       <div class="section">
-        <div class="card">
-          <h3>Read these once</h3>
+        <details class="how-it-works">
+          <summary>How this works</summary>
+          <ol class="rules-list how-it-works-steps">
+            <li>Build the card above: edit the title, description, best for, CTA, and icon, then set tier, sort, and the popup fields.</li>
+            <li>Click Copy row to copy the CSV row it generates.</li>
+            <li>Open the Public Services tab with the button above and paste it in as a new row.</li>
+            <li>In the sheet, click Better Bodies &rarr; Publish services to site. Publish is live, so this step pushes the change to the website.</li>
+          </ol>
+          <p class="how-it-works-heading">Golden rules</p>
           <ul class="rules-list">
-            <li>Only rows with active = TRUE show on the public site.</li>
-            <li>key must be unique and stay lowercase with underscores; it is used to match dual-path overrides in the codebase.</li>
-            <li>tier and sort together control where a service shows and in what order.</li>
-            <li>icon must come from the curated picker below. Anything else falls back to a generic icon on the live site.</li>
-            <li>This console cannot write to the sheet. Paste the generated row into the Public Services tab yourself.</li>
+            <li>Only edit the Public Services tab. Other tabs are out of scope for this module.</li>
+            <li>Never touch the header row.</li>
+            <li>Pick icon and tier from the controls here, not by typing them directly in the sheet.</li>
+            <li>This console cannot write to the sheet. Paste the generated row in yourself.</li>
           </ul>
-          <div class="publish-reminder">
-            <strong>Reminder:</strong>&nbsp;after editing the sheet, run <em>Better Bodies &rarr; Publish services to site</em> from the sheet's menu to push the change live.
+        </details>
+      </div>
+    `;
+
+    setupCardBuilder(root.querySelector("#card-builder-grid"));
+    setupServicesPreview(root);
+  }
+
+  /* ---------------------------------------------------
+   * Card builder: tier-reactive WYSIWYG mock + auto-generated key
+   *
+   * The tier 1 emphasis rule below (red outline, bolder title, tiers 2-4
+   * calm/default) mirrors the live site's isFeatured logic in
+   * src/components/homepage/ServiceTile.jsx (search "isFeatured" there for
+   * the border/background classes and the title font-weight classes). If
+   * that rule ever changes on the site, update .mock-card here to match.
+   * ------------------------------------------------- */
+
+  function setupCardBuilder(container) {
+    const values = {
+      key: "",
+      active: "TRUE",
+      tier: 1,
+      sort: 1,
+      title: "",
+      icon: window.Icons.FALLBACK_ICON,
+      description: "",
+      who: "",
+      cta: "",
+      lead_intent: "",
+      modal_title: "",
+      modal_description: "",
+    };
+
+    let keyMode = "auto"; // "auto" | "manual"
+
+    container.innerHTML = `
+      <div class="mock-card-wrap">
+        <div class="mock-card" id="mock-card" data-tier="1">
+          <button type="button" class="mock-icon-btn" id="mock-icon-btn" title="Change icon" aria-label="Change icon"></button>
+
+          <div class="mock-field">
+            ${fieldLabel("Title", HELP_TEXT.title).outerHTML}
+            <input type="text" class="edit-inline mock-title-input" id="mock-title-input" placeholder="Service title" />
           </div>
+
+          <div class="mock-field">
+            ${fieldLabel("Description", HELP_TEXT.description).outerHTML}
+            <textarea class="edit-inline mock-desc-input" id="mock-desc-input" rows="3" placeholder="A sentence or two about this service."></textarea>
+          </div>
+
+          <div class="mock-field">
+            ${fieldLabel("Best for", HELP_TEXT.who).outerHTML}
+            <input type="text" class="edit-inline mock-who-input" id="mock-who-input" placeholder="Who this is for" />
+          </div>
+
+          <div class="mock-field">
+            ${fieldLabel("CTA", HELP_TEXT.cta).outerHTML}
+            <div class="mock-cta">
+              <input type="text" class="edit-inline mock-cta-input" id="mock-cta-input" placeholder="Request Info" />
+            </div>
+          </div>
+        </div>
+
+        <div class="icon-popover hidden" id="icon-popover"></div>
+      </div>
+
+      <div class="builder-controls">
+        <div class="field" id="key-field">
+          <span class="field-label">Generated ID</span>
+          <div class="generated-id" id="generated-id-display">Generated ID: <code id="generated-id-value">(type a title)</code></div>
+          <input type="text" class="hidden" id="manual-key-input" />
+          <div class="key-mode-actions">
+            <button type="button" class="link-btn" id="override-key-btn">Override manually</button>
+            <button type="button" class="link-btn hidden" id="reset-key-btn">Reset to auto</button>
+          </div>
+          <p class="helper-text">A live service's key should not change once it is in use.</p>
+        </div>
+
+        <div class="field">
+          ${fieldLabel("Tier", HELP_TEXT.tier).outerHTML}
+          <div class="segmented" id="tier-segmented" role="group" aria-label="Tier">
+            <button type="button" class="segmented-btn selected" data-tier="1">1</button>
+            <button type="button" class="segmented-btn" data-tier="2">2</button>
+            <button type="button" class="segmented-btn" data-tier="3">3</button>
+            <button type="button" class="segmented-btn" data-tier="4">4</button>
+          </div>
+        </div>
+
+        <div class="field">
+          ${fieldLabel("Sort", HELP_TEXT.sort).outerHTML}
+          <input type="number" id="sort-input" value="1" />
+        </div>
+
+        <div class="field checkbox-field">
+          ${fieldLabel("Active", HELP_TEXT.active).outerHTML}
+          <input type="checkbox" id="active-input" checked />
+        </div>
+
+        <div class="field">
+          ${fieldLabel("Lead intent", HELP_TEXT.lead_intent).outerHTML}
+          <input type="text" id="lead-intent-input" placeholder="service_interest" />
+        </div>
+
+        <div class="field">
+          ${fieldLabel("Modal title", HELP_TEXT.modal_title).outerHTML}
+          <input type="text" id="modal-title-input" placeholder="Request this service" />
+        </div>
+
+        <div class="field">
+          ${fieldLabel("Modal description", HELP_TEXT.modal_description).outerHTML}
+          <textarea id="modal-description-input" rows="2" placeholder="Tell us what you need and we will follow up."></textarea>
         </div>
       </div>
     `;
 
-    setupServiceRowForm(root.querySelector("#service-row-form"));
-    setupServicesPreview(root);
-  }
+    const els = {
+      mockCard: container.querySelector("#mock-card"),
+      mockIconBtn: container.querySelector("#mock-icon-btn"),
+      titleInput: container.querySelector("#mock-title-input"),
+      descInput: container.querySelector("#mock-desc-input"),
+      whoInput: container.querySelector("#mock-who-input"),
+      ctaInput: container.querySelector("#mock-cta-input"),
+      iconPopover: container.querySelector("#icon-popover"),
+      generatedIdValue: container.querySelector("#generated-id-value"),
+      manualKeyInput: container.querySelector("#manual-key-input"),
+      overrideKeyBtn: container.querySelector("#override-key-btn"),
+      resetKeyBtn: container.querySelector("#reset-key-btn"),
+      tierSegmented: container.querySelector("#tier-segmented"),
+      sortInput: container.querySelector("#sort-input"),
+      activeInput: container.querySelector("#active-input"),
+      leadIntentInput: container.querySelector("#lead-intent-input"),
+      modalTitleInput: container.querySelector("#modal-title-input"),
+      modalDescInput: container.querySelector("#modal-description-input"),
+    };
 
-  function setupServiceRowForm(form) {
-    const values = {};
-    FIELD_DEFS.forEach((field) => {
-      values[field.key] = field.default ?? (field.type === "number" ? 0 : "");
+    function updateCsv() {
+      document.getElementById("csv-result").value = buildCsvRow(values);
+    }
+
+    function renderMockIcon() {
+      els.mockIconBtn.innerHTML = window.Icons.getIcon(values.icon);
+    }
+
+    function renderKeyDisplay() {
+      els.generatedIdValue.textContent = values.key || "(type a title)";
+    }
+
+    // --- Auto key -------------------------------------------------------
+
+    function regenerateKeyFromTitle() {
+      values.key = slugify(values.title);
+      renderKeyDisplay();
+      updateCsv();
+    }
+
+    els.overrideKeyBtn.addEventListener("click", () => {
+      keyMode = "manual";
+      els.manualKeyInput.value = values.key;
+      els.manualKeyInput.classList.remove("hidden");
+      document.getElementById("generated-id-display").classList.add("hidden");
+      els.overrideKeyBtn.classList.add("hidden");
+      els.resetKeyBtn.classList.remove("hidden");
+      els.manualKeyInput.focus();
     });
+
+    els.resetKeyBtn.addEventListener("click", () => {
+      keyMode = "auto";
+      els.manualKeyInput.classList.add("hidden");
+      document.getElementById("generated-id-display").classList.remove("hidden");
+      els.overrideKeyBtn.classList.remove("hidden");
+      els.resetKeyBtn.classList.add("hidden");
+      regenerateKeyFromTitle();
+    });
+
+    els.manualKeyInput.addEventListener("input", () => {
+      const cursor = els.manualKeyInput.selectionStart;
+      const sanitized = sanitizeToSlugChars(els.manualKeyInput.value);
+      els.manualKeyInput.value = sanitized;
+      if (cursor !== null) {
+        els.manualKeyInput.setSelectionRange(cursor, cursor);
+      }
+      values.key = sanitized;
+      updateCsv();
+    });
+
+    els.manualKeyInput.addEventListener("blur", () => {
+      values.key = values.key.replace(/^_+|_+$/g, "");
+      els.manualKeyInput.value = values.key;
+      updateCsv();
+    });
+
+    // --- Card fields (edit-in-place) ------------------------------------
+
+    els.titleInput.addEventListener("input", () => {
+      values.title = els.titleInput.value;
+      if (keyMode === "auto") regenerateKeyFromTitle();
+      updateCsv();
+    });
+
+    els.descInput.addEventListener("input", () => {
+      values.description = els.descInput.value;
+      updateCsv();
+    });
+
+    els.whoInput.addEventListener("input", () => {
+      values.who = els.whoInput.value;
+      updateCsv();
+    });
+
+    els.ctaInput.addEventListener("input", () => {
+      values.cta = els.ctaInput.value;
+      updateCsv();
+    });
+
+    // --- Icon (edit-in-place via popover on the card) -------------------
 
     let iconPicker = null;
 
-    function updateCsv() {
-      const csvBox = document.getElementById("csv-result");
-      csvBox.value = buildCsvRow(values);
-    }
-
-    FIELD_DEFS.forEach((field) => {
-      const wrap = document.createElement("div");
-      wrap.className = "field" + (field.type === "checkbox" ? " checkbox-field" : "");
-
-      const labelRow = document.createElement("label");
-      labelRow.className = "field-label";
-      labelRow.textContent = field.label;
-      labelRow.appendChild(createInfoTooltip(field.help));
-      wrap.appendChild(labelRow);
-
-      if (field.type === "textarea") {
-        const textarea = document.createElement("textarea");
-        textarea.addEventListener("input", () => {
-          values[field.key] = textarea.value;
-          updateCsv();
-        });
-        wrap.appendChild(textarea);
-      } else if (field.type === "checkbox") {
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = !!field.default;
-        checkbox.addEventListener("change", () => {
-          values[field.key] = checkbox.checked ? "TRUE" : "FALSE";
-          updateCsv();
-        });
-        values[field.key] = checkbox.checked ? "TRUE" : "FALSE";
-        wrap.appendChild(checkbox);
-      } else if (field.type === "icon") {
-        iconPicker = createIconPicker({
-          selected: window.Icons.FALLBACK_ICON,
-          onChange: (name) => {
-            values[field.key] = name;
-            updateCsv();
-          },
-        });
-        values[field.key] = iconPicker.getValue();
-        wrap.appendChild(iconPicker.el);
+    els.mockIconBtn.addEventListener("click", () => {
+      const isHidden = els.iconPopover.classList.contains("hidden");
+      if (isHidden) {
+        if (!iconPicker) {
+          iconPicker = createIconPicker({
+            selected: values.icon,
+            onChange: (name) => {
+              values.icon = name;
+              renderMockIcon();
+              updateCsv();
+              els.iconPopover.classList.add("hidden");
+            },
+          });
+          els.iconPopover.appendChild(iconPicker.el);
+        }
+        els.iconPopover.classList.remove("hidden");
       } else {
-        const input = document.createElement("input");
-        input.type = field.type === "number" ? "number" : "text";
-        input.addEventListener("input", () => {
-          values[field.key] = input.value;
-          updateCsv();
-        });
-        wrap.appendChild(input);
+        els.iconPopover.classList.add("hidden");
       }
-
-      form.appendChild(wrap);
     });
 
-    updateCsv();
+    document.addEventListener("click", (event) => {
+      if (
+        !els.iconPopover.classList.contains("hidden") &&
+        !els.iconPopover.contains(event.target) &&
+        !els.mockIconBtn.contains(event.target)
+      ) {
+        els.iconPopover.classList.add("hidden");
+      }
+    });
+
+    // --- Tier (reacts live on the mock card) ----------------------------
+
+    els.tierSegmented.addEventListener("click", (event) => {
+      const btn = event.target.closest(".segmented-btn");
+      if (!btn) return;
+      values.tier = Number(btn.dataset.tier);
+      els.mockCard.dataset.tier = String(values.tier);
+      els.tierSegmented
+        .querySelectorAll(".segmented-btn")
+        .forEach((b) => b.classList.toggle("selected", b === btn));
+      updateCsv();
+    });
+
+    // --- Remaining side controls ----------------------------------------
+
+    els.sortInput.addEventListener("input", () => {
+      values.sort = els.sortInput.value;
+      updateCsv();
+    });
+
+    els.activeInput.addEventListener("change", () => {
+      values.active = els.activeInput.checked ? "TRUE" : "FALSE";
+      updateCsv();
+    });
+
+    els.leadIntentInput.addEventListener("input", () => {
+      values.lead_intent = els.leadIntentInput.value;
+      updateCsv();
+    });
+
+    els.modalTitleInput.addEventListener("input", () => {
+      values.modal_title = els.modalTitleInput.value;
+      updateCsv();
+    });
+
+    els.modalDescInput.addEventListener("input", () => {
+      values.modal_description = els.modalDescInput.value;
+      updateCsv();
+    });
+
+    // --- Copy -------------------------------------------------------------
 
     document.getElementById("copy-csv-btn").addEventListener("click", () => {
       const csvBox = document.getElementById("csv-result");
@@ -564,6 +770,10 @@
         .then(() => showToast("Row copied to clipboard."))
         .catch(() => showToast("Couldn't copy automatically. Select and copy the row manually.", "error"));
     });
+
+    renderMockIcon();
+    renderKeyDisplay();
+    updateCsv();
   }
 
   function setupServicesPreview(root) {
