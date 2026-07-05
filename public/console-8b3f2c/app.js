@@ -313,8 +313,8 @@
    * ------------------------------------------------- */
 
   // Real "Public Services" sheet column order. The row builder must output
-  // exactly this order, quoted correctly, for a paste to line up.
-  const CSV_COLUMNS = [
+  // exactly this order for a paste to line up.
+  const ROW_COLUMNS = [
     "key",
     "active",
     "tier",
@@ -347,16 +347,14 @@
       "Supporting text shown in the popup above the contact form.",
   };
 
-  function csvField(value) {
-    const str = String(value ?? "");
-    if (/[",\n]/.test(str)) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
+  // Google Sheets splits pasted plain text on tabs, not commas. A comma-joined
+  // row lands entirely in one cell; a tab-joined row fills across columns.
+  function tsvCell(value) {
+    return String(value == null ? "" : value).replace(/[\t\r\n]+/g, " ");
   }
 
-  function buildCsvRow(values) {
-    return CSV_COLUMNS.map((key) => csvField(values[key])).join(",");
+  function buildTsvRow(values) {
+    return ROW_COLUMNS.map((key) => tsvCell(values[key])).join("\t");
   }
 
   function copyToClipboard(text) {
@@ -424,8 +422,7 @@
 
       <div class="section">
         <div class="deep-links">
-          <a class="btn" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicServices)}" target="_blank" rel="noopener">Open Public Services tab</a>
-          <a class="btn" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicClasses)}" target="_blank" rel="noopener">Open Public Classes tab</a>
+          <a class="btn" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicClasses)}" target="_blank" rel="noopener noreferrer">Open Public Classes tab</a>
         </div>
       </div>
 
@@ -447,11 +444,12 @@
         <div class="card">
           <div class="card-builder-grid" id="card-builder-grid"></div>
           <div class="csv-output">
-            <label class="field-label" for="csv-result">CSV row (paste into the Public Services tab)</label>
+            <label class="field-label" for="csv-result">Row to paste into the Public Services tab</label>
             <textarea id="csv-result" readonly rows="2"></textarea>
             <div class="csv-actions">
               <button type="button" class="btn btn-primary" id="copy-csv-btn">Copy row</button>
             </div>
+            <a class="btn open-sheet-link" id="open-sheet-link" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicServices)}" target="_blank" rel="noopener noreferrer">Open sheet to paste &rarr;</a>
           </div>
         </div>
       </div>
@@ -461,8 +459,8 @@
           <summary>How this works</summary>
           <ol class="rules-list how-it-works-steps">
             <li>Build the card above: edit the title, description, best for, CTA, and icon, then set tier, sort, and the popup fields.</li>
-            <li>Click Copy row to copy the CSV row it generates.</li>
-            <li>Open the Public Services tab with the button above and paste it in as a new row.</li>
+            <li>Click Copy row to copy the row it generates.</li>
+            <li>Click Open sheet to paste, then paste it in as a new row in the Public Services tab.</li>
             <li>In the sheet, click Better Bodies &rarr; Publish services to site. Publish is live, so this step pushes the change to the website.</li>
           </ol>
           <p class="how-it-works-heading">Golden rules</p>
@@ -608,8 +606,8 @@
       modalDescInput: container.querySelector("#modal-description-input"),
     };
 
-    function updateCsv() {
-      document.getElementById("csv-result").value = buildCsvRow(values);
+    function updateRowOutput() {
+      document.getElementById("csv-result").value = buildTsvRow(values);
     }
 
     function renderMockIcon() {
@@ -625,7 +623,7 @@
     function regenerateKeyFromTitle() {
       values.key = slugify(values.title);
       renderKeyDisplay();
-      updateCsv();
+      updateRowOutput();
     }
 
     els.overrideKeyBtn.addEventListener("click", () => {
@@ -655,13 +653,13 @@
         els.manualKeyInput.setSelectionRange(cursor, cursor);
       }
       values.key = sanitized;
-      updateCsv();
+      updateRowOutput();
     });
 
     els.manualKeyInput.addEventListener("blur", () => {
       values.key = values.key.replace(/^_+|_+$/g, "");
       els.manualKeyInput.value = values.key;
-      updateCsv();
+      updateRowOutput();
     });
 
     // --- Card fields (edit-in-place) ------------------------------------
@@ -669,22 +667,22 @@
     els.titleInput.addEventListener("input", () => {
       values.title = els.titleInput.value;
       if (keyMode === "auto") regenerateKeyFromTitle();
-      updateCsv();
+      updateRowOutput();
     });
 
     els.descInput.addEventListener("input", () => {
       values.description = els.descInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     els.whoInput.addEventListener("input", () => {
       values.who = els.whoInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     els.ctaInput.addEventListener("input", () => {
       values.cta = els.ctaInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     // --- Icon (edit-in-place via popover on the card) -------------------
@@ -700,7 +698,7 @@
             onChange: (name) => {
               values.icon = name;
               renderMockIcon();
-              updateCsv();
+              updateRowOutput();
               els.iconPopover.classList.add("hidden");
             },
           });
@@ -732,34 +730,34 @@
       els.tierSegmented
         .querySelectorAll(".segmented-btn")
         .forEach((b) => b.classList.toggle("selected", b === btn));
-      updateCsv();
+      updateRowOutput();
     });
 
     // --- Remaining side controls ----------------------------------------
 
     els.sortInput.addEventListener("input", () => {
       values.sort = els.sortInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     els.activeInput.addEventListener("change", () => {
       values.active = els.activeInput.checked ? "TRUE" : "FALSE";
-      updateCsv();
+      updateRowOutput();
     });
 
     els.leadIntentInput.addEventListener("input", () => {
       values.lead_intent = els.leadIntentInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     els.modalTitleInput.addEventListener("input", () => {
       values.modal_title = els.modalTitleInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     els.modalDescInput.addEventListener("input", () => {
       values.modal_description = els.modalDescInput.value;
-      updateCsv();
+      updateRowOutput();
     });
 
     // --- Copy -------------------------------------------------------------
@@ -773,7 +771,7 @@
 
     renderMockIcon();
     renderKeyDisplay();
-    updateCsv();
+    updateRowOutput();
   }
 
   function setupServicesPreview(root) {

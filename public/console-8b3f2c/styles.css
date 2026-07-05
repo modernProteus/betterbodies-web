@@ -528,6 +528,10 @@ main {
   margin-top: 0.6rem;
 }
 
+.open-sheet-link {
+  margin-top: 0.6rem;
+}
+
 /* Toasts */
 .toast-stack {
   position: fixed;
