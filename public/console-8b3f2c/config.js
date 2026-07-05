@@ -29,7 +29,6 @@
     MODULES: [
       { id: "services", label: "Services", status: "active" },
       { id: "classes", label: "Classes", status: "active" },
-      { id: "schedule", label: "Schedule", status: "coming-soon" },
       { id: "leads", label: "Leads", status: "coming-soon" },
     ],
   };

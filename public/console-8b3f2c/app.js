@@ -132,6 +132,13 @@
     return { el, render };
   }
 
+  // Updates a collapsed live-preview <summary> label to include the current
+  // count, e.g. "View current services (8)". Shared by Services and Classes.
+  function setPreviewSummaryCount(toggleEl, label, count) {
+    const summary = toggleEl.querySelector("summary");
+    summary.textContent = `${label} (${count})`;
+  }
+
   /* ---------------------------------------------------
    * Icon picker (shared UI helper): searchable grid, live SVG preview
    * ------------------------------------------------- */
@@ -417,21 +424,7 @@
     root.innerHTML = `
       <div class="panel-intro">
         <h2>Services</h2>
-        <p>Public-safe deep links, a live read-only preview of active services, and a card builder for adding new ones to the sheet.</p>
-      </div>
-
-      <div class="section">
-        <div class="deep-links">
-          <a class="btn" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicClasses)}" target="_blank" rel="noopener noreferrer">Open Public Classes tab</a>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-heading">
-          <h3>Live services preview</h3>
-        </div>
-        <div id="services-status-slot"></div>
-        <div class="service-cards" id="services-preview-cards"></div>
+        <p>A card builder for adding new services to the sheet, plus a public-safe deep link and a collapsed live preview.</p>
       </div>
 
       <div class="section">
@@ -441,7 +434,7 @@
         <details class="how-it-works">
           <summary>How this works</summary>
           <ol class="rules-list how-it-works-steps">
-            <li>Build the card above: edit the title, description, best for, CTA, and icon, then set tier, sort, and the popup fields.</li>
+            <li>Build the card below: edit the title, description, best for, CTA, and icon, then set tier, sort, and the popup fields.</li>
             <li>Click Copy row to copy the row it generates.</li>
             <li>Click Open sheet to paste, then paste it in as a new row in the Public Services tab.</li>
             <li>In the sheet, click Better Bodies &rarr; Publish services to site. Publish is live, so this step pushes the change to the website.</li>
@@ -468,6 +461,17 @@
             <a class="btn open-sheet-link" id="open-sheet-link" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicServices)}" target="_blank" rel="noopener noreferrer">Open sheet to paste &rarr;</a>
           </div>
         </div>
+        <div class="deep-links">
+          <a class="btn" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicClasses)}" target="_blank" rel="noopener noreferrer">Open Public Classes tab</a>
+        </div>
+      </div>
+
+      <div class="section">
+        <div id="services-status-slot"></div>
+        <details class="how-it-works live-preview-toggle" id="services-preview-toggle">
+          <summary>View current services</summary>
+          <div class="service-cards" id="services-preview-cards"></div>
+        </details>
       </div>
     `;
 
@@ -774,6 +778,7 @@
   function setupServicesPreview(root) {
     const statusSlot = root.querySelector("#services-status-slot");
     const cardsSlot = root.querySelector("#services-preview-cards");
+    const toggle = root.querySelector("#services-preview-toggle");
 
     const badge = createStatusBadge({ onRetry: () => loadServices() });
     statusSlot.appendChild(badge.el);
@@ -789,6 +794,7 @@
           }
           badge.render({ mode: "live", fetchedAt: new Date() });
           renderServicePreviewCards(cardsSlot, data.services);
+          setPreviewSummaryCount(toggle, "View current services", data.services.length);
         })
         .catch((error) => {
           console.log(
@@ -796,6 +802,7 @@
           );
           badge.render({ mode: "snapshot", snapshotDate: SNAPSHOT_DATE });
           renderServicePreviewCards(cardsSlot, SNAPSHOT_SERVICES);
+          setPreviewSummaryCount(toggle, "View current services", SNAPSHOT_SERVICES.length);
         });
     }
 
@@ -906,15 +913,7 @@
     root.innerHTML = `
       <div class="panel-intro">
         <h2>Classes</h2>
-        <p>A live read-only preview of upcoming classes, and a row builder for adding new ones to the sheet.</p>
-      </div>
-
-      <div class="section">
-        <div class="section-heading">
-          <h3>Upcoming classes preview</h3>
-        </div>
-        <div id="classes-status-slot"></div>
-        <div class="service-cards" id="classes-preview-cards"></div>
+        <p>A row builder for adding new classes to the sheet, plus a collapsed live preview of what is upcoming.</p>
       </div>
 
       <div class="section">
@@ -951,6 +950,14 @@
             <a class="btn open-sheet-link" id="open-classes-link" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicClasses)}" target="_blank" rel="noopener noreferrer">Open Classes tab &rarr;</a>
           </div>
         </div>
+      </div>
+
+      <div class="section">
+        <div id="classes-status-slot"></div>
+        <details class="how-it-works live-preview-toggle" id="classes-preview-toggle">
+          <summary>View current classes</summary>
+          <div class="service-cards" id="classes-preview-cards"></div>
+        </details>
       </div>
     `;
 
@@ -1085,6 +1092,7 @@
   function setupClassesPreview(root) {
     const statusSlot = root.querySelector("#classes-status-slot");
     const cardsSlot = root.querySelector("#classes-preview-cards");
+    const toggle = root.querySelector("#classes-preview-toggle");
 
     const badge = createStatusBadge({ onRetry: () => loadClasses() });
     statusSlot.appendChild(badge.el);
@@ -1100,6 +1108,7 @@
           }
           badge.render({ mode: "live", fetchedAt: new Date() });
           renderClassPreviewCards(cardsSlot, data.events);
+          setPreviewSummaryCount(toggle, "View current classes", data.events.length);
         })
         .catch((error) => {
           console.log(
@@ -1107,6 +1116,7 @@
           );
           badge.render({ mode: "snapshot", snapshotDate: SNAPSHOT_CLASSES_DATE });
           renderClassPreviewCards(cardsSlot, SNAPSHOT_CLASSES);
+          setPreviewSummaryCount(toggle, "View current classes", SNAPSHOT_CLASSES.length);
         });
     }
 
@@ -1114,7 +1124,7 @@
   }
 
   /* ---------------------------------------------------
-   * Schedule / Leads (coming soon stubs)
+   * Leads (coming soon stub)
    * ------------------------------------------------- */
 
   function initComingSoonModule(id, label) {
@@ -1135,7 +1145,6 @@
     renderNav();
     initServicesModule();
     initClassesModule();
-    initComingSoonModule("schedule", "Schedule");
     initComingSoonModule("leads", "Leads");
     showModule("services");
   });
