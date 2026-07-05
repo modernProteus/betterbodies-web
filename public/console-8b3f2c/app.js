@@ -353,8 +353,8 @@
     return String(value == null ? "" : value).replace(/[\t\r\n]+/g, " ");
   }
 
-  function buildTsvRow(values) {
-    return ROW_COLUMNS.map((key) => tsvCell(values[key])).join("\t");
+  function buildTsvRow(columns, values) {
+    return columns.map((key) => tsvCell(values[key])).join("\t");
   }
 
   function copyToClipboard(text) {
@@ -438,23 +438,6 @@
         <div class="section-heading">
           <h3>Card builder</h3>
         </div>
-        <div class="two-speeds-banner">
-          Classes update instantly (no Publish). Services need Publish to appear.
-        </div>
-        <div class="card">
-          <div class="card-builder-grid" id="card-builder-grid"></div>
-          <div class="csv-output">
-            <label class="field-label" for="csv-result">Row to paste into the Public Services tab</label>
-            <textarea id="csv-result" readonly rows="2"></textarea>
-            <div class="csv-actions">
-              <button type="button" class="btn btn-primary" id="copy-csv-btn">Copy row</button>
-            </div>
-            <a class="btn open-sheet-link" id="open-sheet-link" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicServices)}" target="_blank" rel="noopener noreferrer">Open sheet to paste &rarr;</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
         <details class="how-it-works">
           <summary>How this works</summary>
           <ol class="rules-list how-it-works-steps">
@@ -471,6 +454,20 @@
             <li>This console cannot write to the sheet. Paste the generated row in yourself.</li>
           </ul>
         </details>
+        <div class="two-speeds-banner">
+          Classes update instantly (no Publish). Services need Publish to appear.
+        </div>
+        <div class="card">
+          <div class="card-builder-grid" id="card-builder-grid"></div>
+          <div class="csv-output">
+            <label class="field-label" for="csv-result">Row to paste into the Public Services tab</label>
+            <textarea id="csv-result" readonly rows="2"></textarea>
+            <div class="csv-actions">
+              <button type="button" class="btn btn-primary" id="copy-csv-btn">Copy row</button>
+            </div>
+            <a class="btn open-sheet-link" id="open-sheet-link" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicServices)}" target="_blank" rel="noopener noreferrer">Open sheet to paste &rarr;</a>
+          </div>
+        </div>
       </div>
     `;
 
@@ -607,7 +604,7 @@
     };
 
     function updateRowOutput() {
-      document.getElementById("csv-result").value = buildTsvRow(values);
+      document.getElementById("csv-result").value = buildTsvRow(ROW_COLUMNS, values);
     }
 
     function renderMockIcon() {
@@ -806,6 +803,317 @@
   }
 
   /* ---------------------------------------------------
+   * Classes module
+   *
+   * CRITICAL difference from Services: classes are runtime data. The site
+   * reads the "Public Classes" tab on every page load, so there is no
+   * Publish step here. Do not mention Publish anywhere in this module.
+   * ------------------------------------------------- */
+
+  // Real "Public Classes" sheet column order.
+  const CLASS_ROW_COLUMNS = [
+    "status",
+    "class_title",
+    "class_type",
+    "date",
+    "start_time",
+    "end_time",
+    "location_label",
+    "address",
+    "price",
+    "seats_available",
+    "registration_url",
+    "notes",
+    "public",
+    "sort_order",
+  ];
+
+  const CLASS_TYPE_OPTIONS = ["CPR", "BLS", "AED", "First Aid", "Group", "Other"];
+
+  const CLASS_HELP_TEXT = {
+    status:
+      "Published shows this class on the site. Draft saves it but keeps it hidden. Both Status = Published and Public = Yes are required for a class to appear.",
+    class_title: 'The class name shown on the site, e.g. "BLS Certification Class".',
+    class_type:
+      "A short category for grouping. Pick a common one or type your own; free text is fine.",
+    date: "The class date. Used on the site and to hide past classes automatically.",
+    start_time:
+      "When the class starts. Converted to h:MM AM/PM on the output row to match the sheet's existing format.",
+    end_time: "When the class ends. Same AM/PM formatting as start time.",
+    location_label: 'Short place name shown on the site, e.g. "Austin, TX".',
+    address: 'Full address, or "TBD" if it is not set yet.',
+    price: 'Price shown on the site, with the dollar sign, e.g. "$75".',
+    seats_available: "Optional. Number of open seats. Leave blank if you are not tracking this.",
+    registration_url: "Optional. Link used as the registration button, if this class has one.",
+    notes: "Optional internal or on-site notes about this class.",
+    public:
+      "Yes shows this class on the site. Both Status = Published and Public = Yes are required for a class to appear.",
+    sort_order: "Order among classes on the same date. Lower numbers show first.",
+  };
+
+  // <input type="time"> gives 24-hour "HH:MM". The sheet and site expect
+  // "9:00 AM" style, so convert on the way out rather than storing 24h time.
+  function formatTimeAmPm(value) {
+    if (!value) return "";
+    const [hoursStr, minutesStr] = value.split(":");
+    let hours = parseInt(hoursStr, 10);
+    if (Number.isNaN(hours)) return "";
+    const minutes = (minutesStr || "00").padStart(2, "0");
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    return `${hours}:${minutes} ${period}`;
+  }
+
+  const SNAPSHOT_CLASSES_DATE = "2026-07-04";
+  const SNAPSHOT_CLASSES = [
+    {
+      title: "BLS Certification Class",
+      classType: "BLS",
+      date: "2026-06-15",
+      startTime: "9:00 AM",
+      endTime: "1:00 PM",
+      locationLabel: "Austin, TX",
+    },
+  ];
+
+  function renderClassPreviewCards(container, events) {
+    if (!events.length) {
+      container.innerHTML = '<div class="empty-state">No upcoming classes found.</div>';
+      return;
+    }
+
+    container.innerHTML = "";
+    events.forEach((event) => {
+      const card = document.createElement("div");
+      card.className = "service-card";
+      const timeRange = event.endTime
+        ? `${event.startTime} to ${event.endTime}`
+        : event.startTime;
+      card.innerHTML = `
+        <span class="tier-tag">${escapeHtml(event.classType || "Class")}</span>
+        <h4>${escapeHtml(event.title)}</h4>
+        <p>${escapeHtml(event.date)} &middot; ${escapeHtml(timeRange)}</p>
+        <p>${escapeHtml(event.locationLabel || "")}</p>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function initClassesModule() {
+    const root = document.getElementById("module-classes");
+
+    root.innerHTML = `
+      <div class="panel-intro">
+        <h2>Classes</h2>
+        <p>A live read-only preview of upcoming classes, and a row builder for adding new ones to the sheet.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-heading">
+          <h3>Upcoming classes preview</h3>
+        </div>
+        <div id="classes-status-slot"></div>
+        <div class="service-cards" id="classes-preview-cards"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-heading">
+          <h3>Row builder</h3>
+        </div>
+        <details class="how-it-works">
+          <summary>How this works</summary>
+          <ol class="rules-list how-it-works-steps">
+            <li>Build the row below: set status, class details, date, and time, then sort order.</li>
+            <li>Click Copy row to copy the row it generates.</li>
+            <li>Click Open Classes tab to open the Public Classes tab.</li>
+            <li>Paste it in as a new row, save the sheet, done. It is live on the next page load.</li>
+          </ol>
+          <p class="how-it-works-heading">Golden rules</p>
+          <ul class="rules-list">
+            <li>Only edit the Public Classes tab. Other tabs are out of scope for this module.</li>
+            <li>Never touch the header row.</li>
+            <li>Status must be Published and Public must be Yes for a class to show on the site.</li>
+            <li>This console cannot write to the sheet. Paste the generated row in yourself.</li>
+          </ul>
+        </details>
+        <div class="two-speeds-banner">
+          Classes update instantly. Services need Publish.
+        </div>
+        <div class="card">
+          <div class="form-grid" id="class-builder-grid"></div>
+          <div class="csv-output">
+            <label class="field-label" for="class-row-result">Row to paste into the Public Classes tab</label>
+            <textarea id="class-row-result" readonly rows="2"></textarea>
+            <div class="csv-actions">
+              <button type="button" class="btn btn-primary" id="copy-class-row-btn">Copy row</button>
+            </div>
+            <a class="btn open-sheet-link" id="open-classes-link" href="${CONFIG.sheetTabUrl(CONFIG.TABS.publicClasses)}" target="_blank" rel="noopener noreferrer">Open Classes tab &rarr;</a>
+          </div>
+        </div>
+      </div>
+    `;
+
+    setupClassBuilder(root.querySelector("#class-builder-grid"));
+    setupClassesPreview(root);
+  }
+
+  function setupClassBuilder(container) {
+    const values = {
+      status: "Published",
+      class_title: "",
+      class_type: "",
+      date: "",
+      start_time: "",
+      end_time: "",
+      location_label: "",
+      address: "TBD",
+      price: "",
+      seats_available: "",
+      registration_url: "",
+      notes: "",
+      public: "Yes",
+      sort_order: 1,
+    };
+
+    function updateRowOutput() {
+      const output = {
+        ...values,
+        start_time: formatTimeAmPm(values.start_time),
+        end_time: formatTimeAmPm(values.end_time),
+      };
+      document.getElementById("class-row-result").value = buildTsvRow(
+        CLASS_ROW_COLUMNS,
+        output
+      );
+    }
+
+    function addField({ key, label, type, placeholder, options }) {
+      const wrap = document.createElement("div");
+      wrap.className = "field";
+      wrap.appendChild(fieldLabel(label, CLASS_HELP_TEXT[key]));
+
+      let input;
+
+      if (type === "select") {
+        input = document.createElement("select");
+        options.forEach((option) => {
+          const opt = document.createElement("option");
+          opt.value = option;
+          opt.textContent = option;
+          input.appendChild(opt);
+        });
+        input.value = values[key];
+        input.addEventListener("change", () => {
+          values[key] = input.value;
+          updateRowOutput();
+        });
+      } else if (type === "combo") {
+        const listId = `${key}-options`;
+        input = document.createElement("input");
+        input.type = "text";
+        input.setAttribute("list", listId);
+        if (placeholder) input.placeholder = placeholder;
+
+        const datalist = document.createElement("datalist");
+        datalist.id = listId;
+        options.forEach((option) => {
+          const opt = document.createElement("option");
+          opt.value = option;
+          datalist.appendChild(opt);
+        });
+        wrap.appendChild(datalist);
+
+        input.addEventListener("input", () => {
+          values[key] = input.value;
+          updateRowOutput();
+        });
+      } else if (type === "textarea") {
+        input = document.createElement("textarea");
+        if (placeholder) input.placeholder = placeholder;
+        input.addEventListener("input", () => {
+          values[key] = input.value;
+          updateRowOutput();
+        });
+      } else {
+        input = document.createElement("input");
+        input.type = type;
+        if (placeholder) input.placeholder = placeholder;
+        if (values[key]) input.value = values[key];
+        input.addEventListener("input", () => {
+          values[key] = input.value;
+          updateRowOutput();
+        });
+      }
+
+      wrap.appendChild(input);
+      container.appendChild(wrap);
+      return input;
+    }
+
+    addField({ key: "status", label: "Status", type: "select", options: ["Published", "Draft"] });
+    addField({ key: "class_title", label: "Class Title", type: "text" });
+    addField({
+      key: "class_type",
+      label: "Class Type",
+      type: "combo",
+      options: CLASS_TYPE_OPTIONS,
+      placeholder: "CPR, BLS, AED...",
+    });
+    addField({ key: "date", label: "Date", type: "date" });
+    addField({ key: "start_time", label: "Start Time", type: "time" });
+    addField({ key: "end_time", label: "End Time", type: "time" });
+    addField({ key: "location_label", label: "Location Label", type: "text", placeholder: "Austin, TX" });
+    addField({ key: "address", label: "Address", type: "text", placeholder: "TBD" });
+    addField({ key: "price", label: "Price", type: "text", placeholder: "$75" });
+    addField({ key: "seats_available", label: "Seats Available", type: "number" });
+    addField({ key: "registration_url", label: "Registration URL", type: "text", placeholder: "https://..." });
+    addField({ key: "notes", label: "Notes", type: "textarea" });
+    addField({ key: "public", label: "Public", type: "select", options: ["Yes", "No"] });
+    addField({ key: "sort_order", label: "Sort Order", type: "number" });
+
+    updateRowOutput();
+
+    document.getElementById("copy-class-row-btn").addEventListener("click", () => {
+      const box = document.getElementById("class-row-result");
+      copyToClipboard(box.value)
+        .then(() => showToast("Row copied to clipboard."))
+        .catch(() => showToast("Couldn't copy automatically. Select and copy the row manually.", "error"));
+    });
+  }
+
+  function setupClassesPreview(root) {
+    const statusSlot = root.querySelector("#classes-status-slot");
+    const cardsSlot = root.querySelector("#classes-preview-cards");
+
+    const badge = createStatusBadge({ onRetry: () => loadClasses() });
+    statusSlot.appendChild(badge.el);
+
+    function loadClasses() {
+      badge.render({ mode: "loading" });
+      ApiClient.get("events")
+        .then((data) => {
+          if (!data || !Array.isArray(data.events)) {
+            throw new Error(
+              'Endpoint responded but has no "events" array.'
+            );
+          }
+          badge.render({ mode: "live", fetchedAt: new Date() });
+          renderClassPreviewCards(cardsSlot, data.events);
+        })
+        .catch((error) => {
+          console.log(
+            `[Classes module] Falling back to bundled snapshot. Reason: ${error.message}`
+          );
+          badge.render({ mode: "snapshot", snapshotDate: SNAPSHOT_CLASSES_DATE });
+          renderClassPreviewCards(cardsSlot, SNAPSHOT_CLASSES);
+        });
+    }
+
+    loadClasses();
+  }
+
+  /* ---------------------------------------------------
    * Schedule / Leads (coming soon stubs)
    * ------------------------------------------------- */
 
@@ -814,7 +1122,7 @@
     root.innerHTML = `
       <div class="coming-soon-panel">
         <h2>${escapeHtml(label)}</h2>
-        <p>This module is coming soon. It will follow the same shell pattern as Services: config-driven deep links, a live read-only preview, and a status badge.</p>
+        <p>This module is coming soon. It will follow the same shell pattern as Services and Classes: config-driven deep links, a live read-only preview, and a status badge.</p>
       </div>
     `;
   }
@@ -826,6 +1134,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     renderNav();
     initServicesModule();
+    initClassesModule();
     initComingSoonModule("schedule", "Schedule");
     initComingSoonModule("leads", "Leads");
     showModule("services");

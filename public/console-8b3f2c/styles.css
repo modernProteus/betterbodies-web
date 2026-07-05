@@ -342,6 +342,13 @@ main {
   margin: 0;
 }
 
+/* Plain field-grid row builder (Classes module) */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
 /* Card builder side controls */
 .field {
   display: flex;
@@ -359,6 +366,10 @@ main {
 
 .field input[type="text"],
 .field input[type="number"],
+.field input[type="date"],
+.field input[type="time"],
+.field input[type="url"],
+.field select,
 .field textarea {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
@@ -366,6 +377,8 @@ main {
   font-size: 0.87rem;
   font-family: inherit;
   width: 100%;
+  background: white;
+  color: var(--ink);
 }
 
 .field textarea {
@@ -595,6 +608,7 @@ main {
   border-radius: var(--radius);
   background: var(--card);
   padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
 }
 
 .how-it-works summary {
