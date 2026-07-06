@@ -304,6 +304,21 @@ main {
   border-radius: var(--radius);
   padding: 1rem;
   background: white;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+  display: block;
+}
+
+.service-card.selectable {
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.service-card.selectable:hover,
+.service-card.selectable:focus-visible {
+  border-color: var(--red);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .service-card .icon-wrap {
@@ -809,6 +824,24 @@ main {
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.editing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--amber-tint);
+  border: 1px solid hsl(45 90% 75%);
+  color: var(--amber);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.editing-indicator .link-btn {
+  color: inherit;
 }
 
 .helper-text {

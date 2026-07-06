@@ -252,66 +252,138 @@
     {
       key: "cpr",
       tier: 1,
+      active: true,
+      sort: 1,
       title: "CPR Certification",
       icon: "Heart",
       description:
         "Hands-on CPR training for individuals, caregivers, teachers, and professionals who need practical emergency response skills.",
+      who: "Individuals, teachers, childcare providers, caregivers",
+      cta: "Request CPR Training",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Request CPR Certification",
+        description: "Tell us about your CPR training needs and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "bls",
       tier: 1,
+      active: true,
+      sort: 2,
       title: "BLS Certification",
       icon: "Shield",
       description:
         "Basic Life Support training for healthcare workers and professionals who need a higher level of emergency response readiness.",
+      who: "Healthcare workers, care teams, professional responders",
+      cta: "Request BLS Info",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Request BLS Certification",
+        description: "Tell us about your BLS training needs and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "fitness",
       tier: 2,
+      active: true,
+      sort: 1,
       title: "Personal Training & Fitness",
       icon: "Dumbbell",
       description:
         "High-energy, personalized training that meets you where you are and pushes you past your limits.",
+      who: "Individuals and groups chasing real, lasting results",
+      cta: "Ask About Training",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Ask About Personal Training",
+        description: "Tell us about your fitness goals and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "aed_firstaid",
       tier: 3,
+      active: true,
+      sort: 1,
       title: "AED + First Aid",
       icon: "RotateCcw",
       description:
         "Practical first aid and AED-focused training that helps people respond calmly and effectively before help arrives.",
+      who: "Teams, workplaces, schools, churches, community groups",
+      cta: "Ask About First Aid",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Ask About AED + First Aid",
+        description: "Tell us about your first aid needs and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "crisis",
       tier: 3,
+      active: true,
+      sort: 2,
       title: "Crisis Readiness",
       icon: "AlertTriangle",
       description:
         "Situational awareness, de-escalation, and response skills for real-world moments.",
+      who: "Organizations, agencies, mixed-role teams",
+      cta: "Request Readiness Training",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Request Crisis Readiness Training",
+        description: "Tell us about your readiness and de-escalation needs and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "personal_safety",
       tier: 3,
+      active: true,
+      sort: 3,
       title: "Personal Safety",
       icon: "Eye",
       description:
         "Body awareness, personal safety, and self-defense-informed instruction rooted in practical confidence.",
+      who: "Individuals, staff teams, gyms, community groups",
+      cta: "Ask About Safety Training",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Ask About Personal Safety",
+        description: "Tell us about your personal safety or self-defense goals and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "protection",
       tier: 3,
+      active: true,
+      sort: 4,
       title: "Personal & Event Protection",
       icon: "ShieldCheck",
       description:
         "Personal and event protection, plus active-shooter evacuation planning, delivered calmly and professionally.",
+      who: "Individuals, events, organizations, and teams needing on-site protection",
+      cta: "Ask About Protection",
+      leadIntent: "service_interest",
+      modal: {
+        title: "Ask About Protection",
+        description: "Tell us about your personal or event protection needs and Sheldon or Juana will follow up.",
+      },
     },
     {
       key: "wellness",
       tier: 4,
+      active: true,
+      sort: 1,
       title: "Holistic Wellness & Apothecary",
       icon: "Leaf",
       description:
         "Holistic remedies, loose-leaf herbs, essential oils, and artisanal wellness goods.",
+      who: "Anyone looking to round out their wellness",
+      cta: "Ask About Wellness",
+      leadIntent: "wellness_interest",
+      modal: {
+        title: "Ask About Wellness",
+        description: "Tell us what you're looking for and Sheldon or Juana will follow up.",
+      },
     },
   ];
 
@@ -395,7 +467,7 @@
     return sanitizeToSlugChars(title).replace(/^_+|_+$/g, "");
   }
 
-  function renderServicePreviewCards(container, services) {
+  function renderServicePreviewCards(container, services, onSelect) {
     if (!services.length) {
       container.innerHTML = '<div class="empty-state">No active services found.</div>';
       return;
@@ -406,14 +478,19 @@
       .slice()
       .sort((a, b) => (a.tier - b.tier) || ((a.sort || 0) - (b.sort || 0)))
       .forEach((service) => {
-        const card = document.createElement("div");
-        card.className = "service-card";
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "service-card selectable";
+        card.title = "Click to load into the builder for editing";
         card.innerHTML = `
           <span class="icon-wrap">${window.Icons.getIcon(service.icon)}</span>
           <span class="tier-tag">Tier ${escapeHtml(service.tier)}</span>
           <h4>${escapeHtml(service.title)}</h4>
           <p>${escapeHtml(service.description)}</p>
         `;
+        if (onSelect) {
+          card.addEventListener("click", () => onSelect(service));
+        }
         container.appendChild(card);
       });
   }
@@ -435,8 +512,9 @@
           <summary>How this works</summary>
           <ol class="rules-list how-it-works-steps">
             <li>Build the card below: edit the title, description, best for, CTA, and icon, then set tier, sort, and the popup fields.</li>
+            <li>Editing an existing service? Open "View current services" below and click it to load its details into the builder.</li>
             <li>Click Copy row to copy the row it generates.</li>
-            <li>Click Open sheet to paste, then paste it in as a new row in the Public Services tab.</li>
+            <li>Click Open sheet to paste. For a new service, paste it in as a new row. For an edit, paste over the existing row for that service instead.</li>
             <li>In the sheet, click Better Bodies &rarr; Publish services to site. Publish is live, so this step pushes the change to the website.</li>
           </ol>
           <p class="how-it-works-heading">Golden rules</p>
@@ -475,8 +553,8 @@
       </div>
     `;
 
-    setupCardBuilder(root.querySelector("#card-builder-grid"));
-    setupServicesPreview(root);
+    const builder = setupCardBuilder(root.querySelector("#card-builder-grid"));
+    setupServicesPreview(root, builder);
   }
 
   /* ---------------------------------------------------
@@ -508,6 +586,11 @@
     let keyMode = "auto"; // "auto" | "manual"
 
     container.innerHTML = `
+      <div class="editing-indicator hidden" id="editing-indicator">
+        <span id="editing-indicator-text"></span>
+        <button type="button" class="link-btn" id="clear-editing-btn">Start new service</button>
+      </div>
+
       <div class="mock-card-wrap">
         <div class="mock-card" id="mock-card" data-tier="1">
           <button type="button" class="mock-icon-btn" id="mock-icon-btn" title="Change icon" aria-label="Change icon"></button>
@@ -605,6 +688,9 @@
       leadIntentInput: container.querySelector("#lead-intent-input"),
       modalTitleInput: container.querySelector("#modal-title-input"),
       modalDescInput: container.querySelector("#modal-description-input"),
+      editingIndicator: container.querySelector("#editing-indicator"),
+      editingIndicatorText: container.querySelector("#editing-indicator-text"),
+      clearEditingBtn: container.querySelector("#clear-editing-btn"),
     };
 
     function updateRowOutput() {
@@ -770,18 +856,122 @@
         .catch(() => showToast("Couldn't copy automatically. Select and copy the row manually.", "error"));
     });
 
+    // --- Load an existing service in for editing -------------------------
+    // Read-only to the sheet: this only prefills the builder. Copying still
+    // produces a row the owner must paste over the matching existing row.
+
+    function setTier(tier) {
+      values.tier = tier;
+      els.mockCard.dataset.tier = String(tier);
+      els.tierSegmented.querySelectorAll(".segmented-btn").forEach((b) => {
+        b.classList.toggle("selected", Number(b.dataset.tier) === tier);
+      });
+    }
+
+    function populate(service) {
+      keyMode = "manual";
+      values.key = service.key || "";
+      values.active = service.active === false ? "FALSE" : "TRUE";
+      values.sort = service.sort ?? 1;
+      values.title = service.title || "";
+      values.icon = service.icon || window.Icons.FALLBACK_ICON;
+      values.description = service.description || "";
+      values.who = service.who || "";
+      values.cta = service.cta || "";
+      values.lead_intent = service.leadIntent || service.lead_intent || "";
+      values.modal_title = (service.modal && service.modal.title) || service.modal_title || "";
+      values.modal_description =
+        (service.modal && service.modal.description) || service.modal_description || "";
+
+      els.titleInput.value = values.title;
+      els.descInput.value = values.description;
+      els.whoInput.value = values.who;
+      els.ctaInput.value = values.cta;
+      els.sortInput.value = values.sort;
+      els.activeInput.checked = values.active === "TRUE";
+      els.leadIntentInput.value = values.lead_intent;
+      els.modalTitleInput.value = values.modal_title;
+      els.modalDescInput.value = values.modal_description;
+
+      els.manualKeyInput.value = values.key;
+      els.manualKeyInput.classList.remove("hidden");
+      document.getElementById("generated-id-display").classList.add("hidden");
+      els.overrideKeyBtn.classList.add("hidden");
+      els.resetKeyBtn.classList.remove("hidden");
+
+      setTier(Number(service.tier) || 1);
+      renderMockIcon();
+
+      els.editingIndicatorText.textContent = `Editing: ${values.title || values.key}`;
+      els.editingIndicator.classList.remove("hidden");
+
+      updateRowOutput();
+    }
+
+    function clearBuilder() {
+      keyMode = "auto";
+      Object.assign(values, {
+        key: "",
+        active: "TRUE",
+        sort: 1,
+        title: "",
+        icon: window.Icons.FALLBACK_ICON,
+        description: "",
+        who: "",
+        cta: "",
+        lead_intent: "",
+        modal_title: "",
+        modal_description: "",
+      });
+
+      els.titleInput.value = "";
+      els.descInput.value = "";
+      els.whoInput.value = "";
+      els.ctaInput.value = "";
+      els.sortInput.value = "1";
+      els.activeInput.checked = true;
+      els.leadIntentInput.value = "";
+      els.modalTitleInput.value = "";
+      els.modalDescInput.value = "";
+
+      els.manualKeyInput.value = "";
+      els.manualKeyInput.classList.add("hidden");
+      document.getElementById("generated-id-display").classList.remove("hidden");
+      els.overrideKeyBtn.classList.remove("hidden");
+      els.resetKeyBtn.classList.add("hidden");
+
+      setTier(1);
+      renderMockIcon();
+      renderKeyDisplay();
+
+      els.editingIndicator.classList.add("hidden");
+
+      updateRowOutput();
+    }
+
+    els.clearEditingBtn.addEventListener("click", clearBuilder);
+
     renderMockIcon();
     renderKeyDisplay();
     updateRowOutput();
+
+    return { populate };
   }
 
-  function setupServicesPreview(root) {
+  function setupServicesPreview(root, builder) {
     const statusSlot = root.querySelector("#services-status-slot");
     const cardsSlot = root.querySelector("#services-preview-cards");
     const toggle = root.querySelector("#services-preview-toggle");
 
     const badge = createStatusBadge({ onRetry: () => loadServices() });
     statusSlot.appendChild(badge.el);
+
+    function selectService(service) {
+      builder.populate(service);
+      toggle.open = false;
+      root.querySelector(".card-builder-grid").scrollIntoView({ block: "start" });
+      showToast(`Loaded "${service.title}" into the builder.`);
+    }
 
     function loadServices() {
       badge.render({ mode: "loading" });
@@ -793,7 +983,7 @@
             );
           }
           badge.render({ mode: "live", fetchedAt: new Date() });
-          renderServicePreviewCards(cardsSlot, data.services);
+          renderServicePreviewCards(cardsSlot, data.services, selectService);
           setPreviewSummaryCount(toggle, "View current services", data.services.length);
         })
         .catch((error) => {
@@ -801,7 +991,7 @@
             `[Services module] Falling back to bundled snapshot. Reason: ${error.message}`
           );
           badge.render({ mode: "snapshot", snapshotDate: SNAPSHOT_DATE });
-          renderServicePreviewCards(cardsSlot, SNAPSHOT_SERVICES);
+          renderServicePreviewCards(cardsSlot, SNAPSHOT_SERVICES, selectService);
           setPreviewSummaryCount(toggle, "View current services", SNAPSHOT_SERVICES.length);
         });
     }
@@ -872,19 +1062,42 @@
     return `${hours}:${minutes} ${period}`;
   }
 
+  // Reverse of formatTimeAmPm: sheet/API times are "9:00 AM" style, but
+  // <input type="time"> needs 24-hour "HH:MM" to prefill correctly.
+  function parseAmPmToTimeInput(value) {
+    const match = String(value || "")
+      .trim()
+      .match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return "";
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const period = match[3].toUpperCase();
+    if (period === "PM" && hours !== 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, "0")}:${minutes}`;
+  }
+
   const SNAPSHOT_CLASSES_DATE = "2026-07-04";
   const SNAPSHOT_CLASSES = [
     {
+      status: "Published",
       title: "BLS Certification Class",
       classType: "BLS",
       date: "2026-06-15",
       startTime: "9:00 AM",
       endTime: "1:00 PM",
       locationLabel: "Austin, TX",
+      address: "TBD",
+      price: "$75",
+      seatsAvailable: "12",
+      registrationUrl: "",
+      notes: "Healthcare provider BLS course",
+      public: "Yes",
+      sortOrder: 1,
     },
   ];
 
-  function renderClassPreviewCards(container, events) {
+  function renderClassPreviewCards(container, events, onSelect) {
     if (!events.length) {
       container.innerHTML = '<div class="empty-state">No upcoming classes found.</div>';
       return;
@@ -892,8 +1105,10 @@
 
     container.innerHTML = "";
     events.forEach((event) => {
-      const card = document.createElement("div");
-      card.className = "service-card";
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "service-card selectable";
+      card.title = "Click to load into the builder for editing";
       const timeRange = event.endTime
         ? `${event.startTime} to ${event.endTime}`
         : event.startTime;
@@ -903,6 +1118,9 @@
         <p>${escapeHtml(event.date)} &middot; ${escapeHtml(timeRange)}</p>
         <p>${escapeHtml(event.locationLabel || "")}</p>
       `;
+      if (onSelect) {
+        card.addEventListener("click", () => onSelect(event));
+      }
       container.appendChild(card);
     });
   }
@@ -924,9 +1142,10 @@
           <summary>How this works</summary>
           <ol class="rules-list how-it-works-steps">
             <li>Build the row below: set status, class details, date, and time, then sort order.</li>
+            <li>Editing an existing class? Open "View current classes" below and click it to load its details into the builder.</li>
             <li>Click Copy row to copy the row it generates.</li>
-            <li>Click Open Classes tab to open the Public Classes tab.</li>
-            <li>Paste it in as a new row, save the sheet, done. It is live on the next page load.</li>
+            <li>Click Open Classes tab. For a new class, paste it in as a new row. For an edit, paste over the existing row for that class instead.</li>
+            <li>Save the sheet, done. It is live on the next page load.</li>
           </ol>
           <p class="how-it-works-heading">Golden rules</p>
           <ul class="rules-list">
@@ -961,12 +1180,12 @@
       </div>
     `;
 
-    setupClassBuilder(root.querySelector("#class-builder-grid"));
-    setupClassesPreview(root);
+    const builder = setupClassBuilder(root.querySelector("#class-builder-grid"));
+    setupClassesPreview(root, builder);
   }
 
   function setupClassBuilder(container) {
-    const values = {
+    const DEFAULTS = {
       status: "Published",
       class_title: "",
       class_type: "",
@@ -982,6 +1201,16 @@
       public: "Yes",
       sort_order: 1,
     };
+
+    const values = { ...DEFAULTS };
+    const fieldInputs = {};
+
+    const editingIndicator = document.createElement("div");
+    editingIndicator.className = "editing-indicator hidden";
+    editingIndicator.innerHTML =
+      '<span id="class-editing-indicator-text"></span> ' +
+      '<button type="button" class="link-btn" id="clear-class-editing-btn">Start new class</button>';
+    container.parentElement.insertBefore(editingIndicator, container);
 
     function updateRowOutput() {
       const output = {
@@ -1055,6 +1284,7 @@
 
       wrap.appendChild(input);
       container.appendChild(wrap);
+      fieldInputs[key] = input;
       return input;
     }
 
@@ -1087,15 +1317,70 @@
         .then(() => showToast("Row copied to clipboard."))
         .catch(() => showToast("Couldn't copy automatically. Select and copy the row manually.", "error"));
     });
+
+    // --- Load an existing class in for editing ---------------------------
+    // Read-only to the sheet: this only prefills the builder. Copying still
+    // produces a row the owner must paste over the matching existing row.
+
+    const editingText = editingIndicator.querySelector("#class-editing-indicator-text");
+    const clearEditingBtn = editingIndicator.querySelector("#clear-class-editing-btn");
+
+    function applyValuesToFields() {
+      Object.keys(fieldInputs).forEach((key) => {
+        fieldInputs[key].value = values[key] ?? "";
+      });
+    }
+
+    function populate(event) {
+      values.status = event.status || "Published";
+      values.class_title = event.title || event.class_title || "";
+      values.class_type = event.classType || event.class_type || "";
+      values.date = event.date || "";
+      values.start_time = parseAmPmToTimeInput(event.startTime || event.start_time || "");
+      values.end_time = parseAmPmToTimeInput(event.endTime || event.end_time || "");
+      values.location_label = event.locationLabel || event.location_label || "";
+      values.address = event.address || "TBD";
+      values.price = event.price || "";
+      values.seats_available = event.seatsAvailable ?? event.seats_available ?? "";
+      values.registration_url = event.registrationUrl || event.registration_url || "";
+      values.notes = event.notes || "";
+      values.public = event.public || "Yes";
+      values.sort_order = event.sortOrder ?? event.sort_order ?? 1;
+
+      applyValuesToFields();
+
+      editingText.textContent = `Editing: ${values.class_title}`;
+      editingIndicator.classList.remove("hidden");
+
+      updateRowOutput();
+    }
+
+    function clearBuilder() {
+      Object.assign(values, DEFAULTS);
+      applyValuesToFields();
+      editingIndicator.classList.add("hidden");
+      updateRowOutput();
+    }
+
+    clearEditingBtn.addEventListener("click", clearBuilder);
+
+    return { populate };
   }
 
-  function setupClassesPreview(root) {
+  function setupClassesPreview(root, builder) {
     const statusSlot = root.querySelector("#classes-status-slot");
     const cardsSlot = root.querySelector("#classes-preview-cards");
     const toggle = root.querySelector("#classes-preview-toggle");
 
     const badge = createStatusBadge({ onRetry: () => loadClasses() });
     statusSlot.appendChild(badge.el);
+
+    function selectClass(event) {
+      builder.populate(event);
+      toggle.open = false;
+      root.querySelector("#class-builder-grid").scrollIntoView({ block: "start" });
+      showToast(`Loaded "${event.title}" into the builder.`);
+    }
 
     function loadClasses() {
       badge.render({ mode: "loading" });
@@ -1107,7 +1392,7 @@
             );
           }
           badge.render({ mode: "live", fetchedAt: new Date() });
-          renderClassPreviewCards(cardsSlot, data.events);
+          renderClassPreviewCards(cardsSlot, data.events, selectClass);
           setPreviewSummaryCount(toggle, "View current classes", data.events.length);
         })
         .catch((error) => {
@@ -1115,7 +1400,7 @@
             `[Classes module] Falling back to bundled snapshot. Reason: ${error.message}`
           );
           badge.render({ mode: "snapshot", snapshotDate: SNAPSHOT_CLASSES_DATE });
-          renderClassPreviewCards(cardsSlot, SNAPSHOT_CLASSES);
+          renderClassPreviewCards(cardsSlot, SNAPSHOT_CLASSES, selectClass);
           setPreviewSummaryCount(toggle, "View current classes", SNAPSHOT_CLASSES.length);
         });
     }
