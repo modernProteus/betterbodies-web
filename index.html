@@ -2,55 +2,100 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="%BASE_URL%favicon.ico" />
-    <link rel="icon" type="image/png" href="%BASE_URL%favicon.png" />
-    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
 
-    <title>BetterBodies TX | Hands-On Safety Training in Austin</title>
-
+    <title>Better Bodies TX | CPR &amp; BLS Certification in Austin</title>
     <meta
       name="description"
-      content="BetterBodies TX provides founder-led, hands-on CPR, BLS, first aid, crisis readiness, and personal safety training for individuals, teams, and community groups across Austin."
+      content="Founder-led, hands-on CPR, BLS, first aid, crisis readiness, and personal safety training for individuals, teams, and community groups across Austin and Central Texas."
     />
+    <link rel="canonical" href="https://betterbodiestx.com/" />
+    <meta name="theme-color" content="#C10509" />
 
+    <!-- Icons. %BASE_URL% keeps these correct on both Netlify (root) and the
+         GitHub Pages preview (subpath). Files live in /public. -->
+    <link rel="icon" type="image/x-icon" href="%BASE_URL%favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon.png" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+
+    <!-- Open Graph. Image URLs must be absolute: scrapers do not resolve
+         relative paths. Filename is versioned because Apple caches hard. -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="BetterBodies TX" />
+    <meta property="og:site_name" content="Better Bodies TX" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://betterbodiestx.com/" />
     <meta
       property="og:title"
-      content="BetterBodies TX | Train your body. Prepare your mind. Protect your community."
+      content="Better Bodies TX | CPR &amp; BLS Certification in Austin"
     />
     <meta
       property="og:description"
-      content="Founder-led, hands-on CPR, BLS, first aid, crisis readiness, and personal safety training in Austin."
-    />
-    <meta
-      property="og:url"
-      content="https://modernproteus.github.io/betterbodies-web/"
+      content="Founder-led, hands-on CPR, BLS, first aid, crisis readiness, and personal safety training across Austin and Central Texas."
     />
     <meta
       property="og:image"
-      content="https://modernproteus.github.io/betterbodies-web/assets/images/social/betterbodies-preview.png"
+      content="https://betterbodiestx.com/assets/images/social/og-pulse-v9.jpg"
     />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Sheldon Williams of Better Bodies TX. Train your body. Prepare your mind. Protect what matters."
+    />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="BetterBodies TX | Train your body. Prepare your mind. Protect your community."
+      content="Better Bodies TX | CPR &amp; BLS Certification in Austin"
     />
     <meta
       name="twitter:description"
-      content="Founder-led, hands-on CPR, BLS, first aid, crisis readiness, and personal safety training in Austin."
+      content="Founder-led, hands-on CPR, BLS, first aid, crisis readiness, and personal safety training across Austin and Central Texas."
     />
     <meta
       name="twitter:image"
-      content="https://modernproteus.github.io/betterbodies-web/assets/images/social/betterbodies-preview.png"
+      content="https://betterbodiestx.com/assets/images/social/og-pulse-v9.jpg"
     />
-    <link rel="manifest" href="/manifest.json" />
-    <title>Better Bodies TX — CPR & BLS Certification in Austin</title>
+
+    <!-- Local business schema. Helps Google connect the site to the Business
+         Profile for "CPR classes Austin" style queries. Every value here is
+         verified: no ratings, no unverified credentials. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Better Bodies TX",
+        "url": "https://betterbodiestx.com/",
+        "image": "https://betterbodiestx.com/assets/images/social/og-pulse-v9.jpg",
+        "description": "Founder-led CPR, BLS, first aid, crisis readiness, fitness, and personal safety training in Austin and Central Texas.",
+        "telephone": "+1-512-663-0733",
+        "email": "betterbodiescpr@gmail.com",
+        "founder": {
+          "@type": "Person",
+          "name": "Sheldon Williams"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Austin",
+          "addressRegion": "TX",
+          "postalCode": "78714",
+          "addressCountry": "US"
+        },
+        "areaServed": [
+          "Austin, TX",
+          "Pflugerville, TX",
+          "Cedar Park, TX",
+          "Killeen, TX",
+          "Elgin, TX",
+          "Bastrop, TX"
+        ],
+        "sameAs": [
+          "https://www.instagram.com/betterbodiescpr/",
+          "https://www.facebook.com/BetterBodiesATX"
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
